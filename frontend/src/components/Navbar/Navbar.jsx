@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthService from '../../services/auth.service';
 import NotificationService from '../../services/notification.service';
 import './Navbar.css';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsAuthenticated(AuthService.isAuthenticated());
@@ -21,6 +23,11 @@ const Navbar = () => {
       return () => clearInterval(interval);
     }
   }, []);
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   const fetchUnreadCount = async () => {
     try {
@@ -42,11 +49,29 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="container">
         <div className="navbar-content">
-          <Link to="/" className="navbar-brand">
+          <Link to="/" className="navbar-brand" onClick={() => setMenuOpen(false)}>
             <img src="/images/logo.png" alt="BusinessBuy" className="navbar-logo-full" />
           </Link>
 
-          <ul className="navbar-menu">
+          <button
+            type="button"
+            className={`navbar-toggle${menuOpen ? ' active' : ''}`}
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label="Basculer le menu de navigation"
+            aria-expanded={menuOpen}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+
+          <ul
+            className={`navbar-menu${menuOpen ? ' open' : ''}`}
+            onClick={(e) => {
+              // Close the mobile dropdown when any link/button is tapped.
+              if (e.target.closest('a, button')) setMenuOpen(false);
+            }}
+          >
             <li><Link to="/">Accueil</Link></li>
             <li><Link to="/entreprises">Entreprises</Link></li>
             <li><Link to="/categories">Catégories</Link></li>
