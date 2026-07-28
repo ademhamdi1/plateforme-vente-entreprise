@@ -1,0 +1,15 @@
+{
+  "short_name": "BusinessBuy",
+  "name": "BusinessBuy - Acheter, Vendre, Investir en Tunisie",
+  "icons": [
+    {
+      "src": "images/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1e3a8a",
+  "background_color": "#ffffff"
+}
