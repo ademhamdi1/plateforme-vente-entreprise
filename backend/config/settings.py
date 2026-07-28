@@ -170,12 +170,23 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# CORS Settings
+# CORS Settings (env-driven; defaults preserve local dev behavior)
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    o.strip() for o in config(
+        'CORS_ALLOWED_ORIGINS',
+        default='http://localhost:3000,http://127.0.0.1:3000',
+    ).split(',') if o.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# Trusted origins for CSRF (needed when using the Django admin via a browser
+# on the deployed host). Comma-separated list in env.
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in config(
+        'CSRF_TRUSTED_ORIGINS',
+        default='http://localhost:3000',
+    ).split(',') if o.strip()
+]
 
 # Email settings
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')

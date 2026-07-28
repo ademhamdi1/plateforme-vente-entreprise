@@ -26,8 +26,12 @@ const Login = () => {
     try {
       await AuthService.login(formData.username, formData.password);
       toast.success('Connexion réussie !');
-      navigate('/dashboard');
-      window.location.reload(); // Refresh to update navbar
+      // Full page load to /dashboard: the Navbar reads auth from localStorage
+      // on mount (so it updates to the logged-in state), and the dashboard's
+      // profile fetch runs uninterrupted. NOTE: a SPA navigate() followed by
+      // window.location.reload() would mount the dashboard, start its
+      // /profile/ request, then abort it on reload -> "Request aborted".
+      window.location.href = '/dashboard';
     } catch (error) {
       toast.error(
         error.response?.data?.detail || 'Erreur de connexion. Vérifiez vos identifiants.'
