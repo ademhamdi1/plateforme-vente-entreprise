@@ -70,7 +70,7 @@ button:disabled {
 
 .main-content {
   min-height: calc(100vh - 200px);
-  padding-top: 80px;
+  padding-top: 0;
 }
 
 /* Scroll smooth */
