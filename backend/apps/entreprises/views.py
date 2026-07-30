@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, filters, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Entreprise, EntrepriseImage, EntrepriseDocument
 from .serializers import (
@@ -27,17 +28,31 @@ class EntrepriseListView(generics.ListAPIView):
     ordering = ['-est_mise_en_avant', '-created_at']
     
     def get_queryset(self):
-        return Entreprise.objects.filter(statut='publiee').select_related('vendeur')
+        queryset = Entreprise.objects.select_related('vendeur')
+        user = self.request.user
+
+        if user.is_authenticated and user.user_type == 'vendeur':
+            return queryset.filter(Q(statut='publiee') | Q(vendeur=user)).distinct()
+
+        return queryset.filter(statut='publiee')
 
 
 class EntrepriseDetailView(generics.RetrieveAPIView):
     """
     Détails d'une entreprise
     """
-    queryset = Entreprise.objects.filter(statut='publiee')
     serializer_class = EntrepriseDetailSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        queryset = Entreprise.objects.select_related('vendeur')
+        user = self.request.user
+
+        if user.is_authenticated and user.user_type == 'vendeur':
+            return queryset.filter(Q(statut='publiee') | Q(vendeur=user)).distinct()
+
+        return queryset.filter(statut='publiee')
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

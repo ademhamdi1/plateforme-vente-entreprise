@@ -9,7 +9,14 @@
 .main-content {
   flex: 1;
   background: white;
-  margin-top: 70px;
+  margin-top: 72px;
+  padding-top: 0;
+}
+
+@media (min-width: 901px) {
+  .main-content {
+    margin-top: 92px;
+  }
 }
 
 /* Professional Buttons */
