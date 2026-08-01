@@ -1,0 +1,363 @@
+/* Mobile First - 320px base */
+.notifications-page {
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px 10px;
+}
+
+.notifications-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.notifications-header {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 15px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.notifications-header h1 {
+  font-size: 22px;
+  color: #2d3748;
+  margin: 0;
+}
+
+.unread-count {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Actions */
+.notifications-actions {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.notifications-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4a5568;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.btn-mark-all {
+  width: 100%;
+  padding: 10px;
+  background: #48bb78;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-mark-all:hover {
+  background: #38a169;
+  transform: translateY(-2px);
+}
+
+/* Liste */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification-item {
+  background: white;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  position: relative;
+}
+
+.notification-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.notification-item.unread {
+  background: linear-gradient(to right, #f0f4ff 0%, white 100%);
+  border-left: 4px solid #667eea;
+}
+
+.notification-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f7fafc;
+  border-radius: 10px;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-header-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.notification-header-item h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background: #667eea;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.notification-message {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #4a5568;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.notification-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #718096;
+}
+
+.notification-type {
+  font-size: 11px;
+  color: #a0aec0;
+  background: #edf2f7;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.notification-arrow {
+  font-size: 18px;
+  color: #cbd5e0;
+  flex-shrink: 0;
+}
+
+/* Empty State */
+.notifications-empty {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  font-size: 60px;
+  margin-bottom: 20px;
+  opacity: 0.5;
+}
+
+.notifications-empty h3 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  color: #2d3748;
+}
+
+.notifications-empty p {
+  margin: 0;
+  font-size: 14px;
+  color: #718096;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* Loading */
+.notifications-loading {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.notifications-loading p {
+  margin: 0;
+  color: #718096;
+  font-size: 14px;
+}
+
+/* Tablet - 768px */
+@media (min-width: 768px) {
+  .notifications-page {
+    padding: 30px 20px;
+  }
+
+  .notifications-header {
+    padding: 25px 30px;
+    margin-bottom: 20px;
+  }
+
+  .notifications-header h1 {
+    font-size: 28px;
+  }
+
+  .unread-count {
+    font-size: 14px;
+    padding: 6px 16px;
+  }
+
+  .notifications-actions {
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .notifications-filters {
+    margin-bottom: 0;
+    flex: 1;
+    max-width: 500px;
+  }
+
+  .filter-btn {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+
+  .btn-mark-all {
+    width: auto;
+    padding: 12px 24px;
+    margin-left: 20px;
+  }
+
+  .notifications-list {
+    gap: 12px;
+  }
+
+  .notification-item {
+    padding: 20px;
+  }
+
+  .notification-icon {
+    font-size: 32px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .notification-header-item h4 {
+    font-size: 16px;
+  }
+
+  .notification-message {
+    font-size: 15px;
+  }
+
+  .notification-time {
+    font-size: 13px;
+  }
+
+  .notification-type {
+    font-size: 12px;
+  }
+
+  .empty-icon {
+    font-size: 80px;
+  }
+
+  .notifications-empty h3 {
+    font-size: 24px;
+  }
+
+  .notifications-empty p {
+    font-size: 16px;
+  }
+}
+
+/* Desktop - 1024px */
+@media (min-width: 1024px) {
+  .notifications-page {
+    padding: 40px 30px;
+  }
+
+  .notification-item:hover .notification-arrow {
+    color: #667eea;
+    transform: translateX(4px);
+  }
+
+  .filter-btn {
+    min-width: 120px;
+  }
+}

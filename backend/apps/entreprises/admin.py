@@ -1,177 +1,165 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from django.db.models import Count
 from .models import Entreprise, EntrepriseImage, EntrepriseDocument
+from .favoris_models import Favori
+from .messaging_models import Conversation, Message
+from .statistiques_models import StatistiqueVue, StatistiqueAction, StatistiqueConversion
+from .actualite_models import Actualite
 
 
 class EntrepriseImageInline(admin.TabularInline):
     model = EntrepriseImage
     extra = 1
-    fields = ['image', 'caption', 'is_logo', 'order']
-    classes = ['collapse']
 
 
 class EntrepriseDocumentInline(admin.TabularInline):
     model = EntrepriseDocument
     extra = 1
-    fields = ['document', 'titre', 'description']
-    classes = ['collapse']
 
 
 @admin.register(Entreprise)
 class EntrepriseAdmin(admin.ModelAdmin):
-    list_display = [
-        'nom', 'region_badge', 'prix_formatted',
-        'statut_badge', 'featured_badge', 'views_badge', 'created_at'
-    ]
-    list_filter = ['statut', 'region', 'type_transaction', 'est_mise_en_avant', 'created_at']
-    search_fields = ['nom', 'description', 'ville', 'vendeur__username', 'vendeur__email']
-    prepopulated_fields = {'slug': ('nom',)}
-    date_hierarchy = 'created_at'
+    list_display = ['nom', 'vendeur', 'secteur', 'region', 'prix_demande', 'statut', 'nombre_vues', 'created_at']
+    list_filter = ['statut', 'secteur', 'region', 'type_transaction']
+    search_fields = ['nom', 'description', 'ville']
+    readonly_fields = ['slug', 'nombre_vues', 'created_at', 'updated_at']
     inlines = [EntrepriseImageInline, EntrepriseDocumentInline]
-    list_per_page = 20
-    autocomplete_fields = ['vendeur']
     
     fieldsets = (
-        ('📋 Informations générales', {
-            'fields': ('nom', 'slug', 'description', 'region', 'ville', 'adresse'),
-            'classes': ('wide',)
+        ('Informations générales', {
+            'fields': ('nom', 'slug', 'description', 'secteur', 'region', 'ville', 'historique')
         }),
-        ('💰 Informations financières', {
-            'fields': ('prix_demande', 'chiffre_affaires', 'resultat_net', 'valeur_actifs', 'endettement'),
-            'classes': ('collapse',)
+        ('Informations financières', {
+            'fields': ('prix_demande', 'chiffre_affaires', 'resultat_net', 'valeur_actifs', 'endettement')
         }),
-        ('🏭 Informations opérationnelles', {
-            'fields': ('nombre_employes', 'annee_creation', 'surface_local', 'equipements_inclus'),
-            'classes': ('collapse',)
+        ('Informations opérationnelles', {
+            'fields': ('nombre_employes', 'annee_creation', 'surface_local', 'equipements_inclus')
         }),
-        ('🤝 Transaction', {
-            'fields': ('type_transaction', 'points_forts', 'opportunites_developpement'),
-            'classes': ('collapse',)
+        ('Médias', {
+            'fields': ('video_url',)
         }),
-        ('🔒 Confidentialité', {
-            'fields': ('nom_masque', 'adresse_masquee'),
-            'classes': ('collapse',)
+        ('Transaction', {
+            'fields': ('type_transaction', 'points_forts', 'opportunites_developpement')
         }),
-        ('⚙️ Gestion', {
-            'fields': ('vendeur', 'statut', 'est_mise_en_avant', 'nombre_vues'),
+        ('Confidentialité', {
+            'fields': ('nom_masque', 'adresse_masquee')
+        }),
+        ('Gestion', {
+            'fields': ('vendeur', 'statut', 'raison_refus', 'est_mise_en_avant', 'nombre_vues')
+        }),
+        ('Dates', {
+            'fields': ('created_at', 'updated_at', 'published_at')
         }),
     )
-    
-    readonly_fields = ['nombre_vues']
-    
-    actions = ['publier_entreprises', 'refuser_entreprises', 'mettre_en_avant']
-    
-    def statut_badge(self, obj):
-        colors = {
-            'brouillon': '#f59e0b',
-            'en_attente': '#3b82f6',
-            'publiee': '#10b981',
-            'refusee': '#ef4444',
-            'vendue': '#6b7280'
-        }
-        icons = {
-            'brouillon': '📝',
-            'en_attente': '⏳',
-            'publiee': '✅',
-            'refusee': '❌',
-            'vendue': '🏆'
-        }
-        color = colors.get(obj.statut, '#6b7280')
-        icon = icons.get(obj.statut, '📄')
-        return format_html(
-            '<span style="background: {}; color: white; padding: 5px 14px; '
-            'border-radius: 14px; font-weight: 600; font-size: 11px; text-transform: uppercase;">'
-            '{} {}</span>',
-            color, icon, obj.get_statut_display()
-        )
-    statut_badge.short_description = '📊 Statut'
-    statut_badge.admin_order_field = 'statut'
-    
-    def featured_badge(self, obj):
-        if obj.est_mise_en_avant:
-            return format_html(
-                '<span style="font-size: 24px;" title="En vedette">⭐</span>'
-            )
-        return format_html('<span style="color: #d1d5db;">-</span>')
-    featured_badge.short_description = '⭐'
-    
-    def views_badge(self, obj):
-        return format_html(
-            '<span style="background: #f3f4f6; color: #374151; padding: 4px 10px; '
-            'border-radius: 10px; font-weight: 600; font-size: 12px;">👁️ {}</span>',
-            obj.nombre_vues
-        )
-    views_badge.short_description = '👁️ Vues'
-    views_badge.admin_order_field = 'nombre_vues'
-    
-    def prix_formatted(self, obj):
-        return format_html(
-            '<span style="color: #10b981; font-weight: 700; font-size: 14px;">{:,.0f} TND</span>',
-            obj.prix_demande
-        )
-    prix_formatted.short_description = '💵 Prix'
-    prix_formatted.admin_order_field = 'prix_demande'
-    
-    def region_badge(self, obj):
-        return format_html(
-            '<span style="background: #eff6ff; color: #1e40af; padding: 4px 10px; '
-            'border-radius: 10px; font-weight: 600; font-size: 11px;">📍 {}</span>',
-            obj.get_region_display()
-        )
-    region_badge.short_description = '📍 Région'
-    region_badge.admin_order_field = 'region'
-    
-    def publier_entreprises(self, request, queryset):
-        updated = queryset.update(statut='publiee')
-        self.message_user(request, f'✅ {updated} entreprise(s) publiée(s) avec succès.', 'success')
-    publier_entreprises.short_description = "✅ Publier les entreprises sélectionnées"
-    
-    def refuser_entreprises(self, request, queryset):
-        updated = queryset.update(statut='refusee')
-        self.message_user(request, f'❌ {updated} entreprise(s) refusée(s).', 'warning')
-    refuser_entreprises.short_description = "❌ Refuser les entreprises sélectionnées"
-    
-    def mettre_en_avant(self, request, queryset):
-        updated = queryset.update(est_mise_en_avant=True)
-        self.message_user(request, f'⭐ {updated} entreprise(s) mise(s) en avant.', 'success')
-    mettre_en_avant.short_description = "⭐ Mettre en avant"
 
 
 @admin.register(EntrepriseImage)
 class EntrepriseImageAdmin(admin.ModelAdmin):
-    list_display = ['image_preview', 'entreprise', 'caption', 'logo_badge', 'order', 'uploaded_at']
+    list_display = ['entreprise', 'caption', 'is_logo', 'order', 'uploaded_at']
     list_filter = ['is_logo', 'uploaded_at']
     search_fields = ['entreprise__nom', 'caption']
-    list_per_page = 25
-    
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html(
-                '<img src="{}" style="width: 60px; height: 60px; object-fit: cover; '
-                'border-radius: 8px; border: 2px solid #e5e7eb;"/>',
-                obj.image.url
-            )
-        return '-'
-    image_preview.short_description = '🖼️ Aperçu'
-    
-    def logo_badge(self, obj):
-        if obj.is_logo:
-            return format_html('<span style="font-size: 20px;">⭐</span>')
-        return '-'
-    logo_badge.short_description = 'Logo'
+    ordering = ['entreprise', 'order']
 
 
 @admin.register(EntrepriseDocument)
 class EntrepriseDocumentAdmin(admin.ModelAdmin):
-    list_display = ['titre', 'entreprise', 'document_type', 'uploaded_at']
+    list_display = ['entreprise', 'titre', 'uploaded_at']
     list_filter = ['uploaded_at']
-    search_fields = ['titre', 'entreprise__nom', 'description']
-    list_per_page = 25
+    search_fields = ['entreprise__nom', 'titre', 'description']
+    ordering = ['-uploaded_at']
+
+
+@admin.register(Favori)
+class FavoriAdmin(admin.ModelAdmin):
+    list_display = ['acheteur', 'entreprise', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['acheteur__username', 'entreprise__nom']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['created_at']
+
+
+class MessageInline(admin.TabularInline):
+    model = Message
+    extra = 0
+    readonly_fields = ['sender', 'content', 'created_at']
+    can_delete = False
+    max_num = 10
+
+
+@admin.register(Conversation)
+class ConversationAdmin(admin.ModelAdmin):
+    list_display = ['entreprise', 'acheteur', 'vendeur', 'created_at', 'updated_at']
+    list_filter = ['created_at', 'updated_at']
+    search_fields = ['entreprise__nom', 'acheteur__username', 'vendeur__username']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['created_at', 'updated_at']
+    inlines = [MessageInline]
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ['conversation', 'sender', 'content_preview', 'is_read', 'created_at']
+    list_filter = ['is_read', 'created_at']
+    search_fields = ['conversation__entreprise__nom', 'sender__username', 'content']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['created_at']
     
-    def document_type(self, obj):
-        return format_html(
-            '<span style="background: #fef3c7; color: #92400e; padding: 4px 10px; '
-            'border-radius: 10px; font-weight: 600; font-size: 11px;">📄 PDF</span>'
-        )
-    document_type.short_description = 'Type'
+    def content_preview(self, obj):
+        return obj.content[:50] + '...' if len(obj.content) > 50 else obj.content
+    content_preview.short_description = 'Contenu'
+
+
+@admin.register(StatistiqueVue)
+class StatistiqueVueAdmin(admin.ModelAdmin):
+    list_display = ['entreprise', 'date', 'nombre_vues', 'nombre_vues_uniques', 'temps_moyen_secondes']
+    list_filter = ['date']
+    search_fields = ['entreprise__nom']
+    date_hierarchy = 'date'
+
+
+@admin.register(StatistiqueAction)
+class StatistiqueActionAdmin(admin.ModelAdmin):
+    list_display = ['entreprise', 'utilisateur', 'action', 'ip_address', 'created_at']
+    list_filter = ['action', 'created_at']
+    search_fields = ['entreprise__nom', 'utilisateur__username', 'ip_address']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['created_at']
+
+
+@admin.register(StatistiqueConversion)
+class StatistiqueConversionAdmin(admin.ModelAdmin):
+    list_display = ['entreprise', 'date', 'nombre_vues', 'nombre_contacts', 'taux_conversion']
+    list_filter = ['date']
+    search_fields = ['entreprise__nom']
+    date_hierarchy = 'date'
+    readonly_fields = ['taux_conversion']
+
+
+
+# =====================================
+# ACTUALITÉS
+# =====================================
+@admin.register(Actualite)
+class ActualiteAdmin(admin.ModelAdmin):
+    list_display = ['titre', 'auteur', 'est_publiee', 'date_publication', 'created_at']
+    list_filter = ['est_publiee', 'date_publication', 'created_at']
+    search_fields = ['titre', 'contenu']
+    readonly_fields = ['slug', 'created_at', 'updated_at']
+    date_hierarchy = 'date_publication'
+    
+    fieldsets = (
+        ('Informations principales', {
+            'fields': ('titre', 'slug', 'contenu', 'image', 'auteur')
+        }),
+        ('Publication', {
+            'fields': ('est_publiee', 'date_publication')
+        }),
+        ('Dates', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def save_model(self, request, obj, form, change):
+        if not obj.auteur:
+            obj.auteur = request.user
+        super().save_model(request, obj, form, change)

@@ -4,36 +4,48 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
 
-// Components
-import Navbar from './components/Navbar/Navbar';
-import Footer from './components/Footer/Footer';
-import PrivateRoute from './components/PrivateRoute/PrivateRoute';
-import ScrollToTop from './components/ScrollToTop/ScrollToTop';
-
 // Pages
-import Home from './pages/Home/Home';
-import Login from './pages/Auth/Login';
-import Register from './pages/Auth/Register';
-import EntrepriseList from './pages/Entreprises/EntrepriseList';
-import EntrepriseDetail from './pages/Entreprises/EntrepriseDetail';
-import Dashboard from './pages/Dashboard/Dashboard';
-import CreateEntreprise from './pages/Entreprises/CreateEntreprise';
-import Notifications from './pages/Notifications/Notifications';
-import Messages from './pages/Messages/Messages';
-import Comparison from './pages/Comparison/Comparison';
-import ContactRequests from './pages/ContactRequests/ContactRequests';
-import Categories from './pages/Categories/Categories';
-import About from './pages/About/About';
-import Contact from './pages/Contact/Contact';
-import FAQ from './pages/FAQ/FAQ';
-import Terms from './pages/Terms/Terms';
-import Privacy from './pages/Privacy/Privacy';
-import Cookies from './pages/Cookies/Cookies';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import PublierEntreprise from './pages/PublierEntreprise';
+import ModifierEntreprise from './pages/ModifierEntreprise';
+import ListeEntreprises from './pages/ListeEntreprises';
+import DetailEntreprise from './pages/DetailEntreprise';
+import Messages from './pages/Messages';
+import ConversationDetail from './pages/ConversationDetail';
+import Favoris from './pages/Favoris';
+import GestionMedias from './pages/GestionMedias';
+import Abonnement from './pages/Abonnement';
+import Statistiques from './pages/Statistiques';
+import Notifications from './pages/Notifications';
+import SoumettreAvis from './pages/SoumettreAvis';
+import AdminTemoignages from './pages/AdminTemoignages';
+import AdminEntreprisesPubliees from './pages/AdminEntreprisesPubliees';
+import Profil from './pages/Profil';
+import MesAlertes from './pages/MesAlertes';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import FAQ from './pages/FAQ';
+import Actualites from './pages/Actualites';
+import ActualiteDetail from './pages/ActualiteDetail';
+import Comparateur from './pages/Comparateur';
+import CGU from './pages/CGU';
+import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite';
+import MentionsLegales from './pages/MentionsLegales';
+import VerifyEmail from './pages/VerifyEmail';
+import RequestPasswordReset from './pages/RequestPasswordReset';
+import ResetPassword from './pages/ResetPassword';
+
+// Components
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 function App() {
   return (
     <Router>
-      <ScrollToTop />
       <div className="App">
         <Navbar />
         <main className="main-content">
@@ -41,62 +53,50 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/entreprises" element={<EntrepriseList />} />
-            <Route path="/entreprises/:slug" element={<EntrepriseDetail />} />
-            <Route path="/comparison" element={<Comparison />} />
-            <Route path="/categories" element={<Categories />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/publier" element={<PublierEntreprise />} />
+            <Route path="/modifier/:slug" element={<ModifierEntreprise />} />
+            <Route path="/entreprises" element={<ListeEntreprises />} />
+            <Route path="/entreprises/:slug" element={<DetailEntreprise />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:id" element={<ConversationDetail />} />
+            <Route path="/favoris" element={<Favoris />} />
+            <Route path="/medias/:slug" element={<GestionMedias />} />
+            <Route path="/abonnement" element={<Abonnement />} />
+            <Route path="/statistiques/:slug" element={<Statistiques />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/soumettre-avis" element={<SoumettreAvis />} />
+            <Route path="/profil" element={<Profil />} />
+            <Route path="/alertes" element={<MesAlertes />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/faq" element={<FAQ />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/cookies" element={<Cookies />} />
-            
-            {/* Protected Routes */}
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/notifications"
-              element={
-                <PrivateRoute>
-                  <Notifications />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <PrivateRoute>
-                  <Messages />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/contact-requests"
-              element={
-                <PrivateRoute>
-                  <ContactRequests />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/entreprises/create"
-              element={
-                <PrivateRoute>
-                  <CreateEntreprise />
-                </PrivateRoute>
-              }
-            />
+            <Route path="/actualites" element={<Actualites />} />
+            <Route path="/actualites/:slug" element={<ActualiteDetail />} />
+            <Route path="/comparateur" element={<Comparateur />} />
+            <Route path="/admin/temoignages" element={<AdminTemoignages />} />
+            <Route path="/admin/entreprises-publiees" element={<AdminEntreprisesPubliees />} />
+            <Route path="/cgu" element={<CGU />} />
+            <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
+            <Route path="/verify-email/:uidb64/:token" element={<VerifyEmail />} />
+            <Route path="/forgot-password" element={<RequestPasswordReset />} />
+            <Route path="/reset-password/:uidb64/:token" element={<ResetPassword />} />
           </Routes>
         </main>
         <Footer />
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
       </div>
     </Router>
   );

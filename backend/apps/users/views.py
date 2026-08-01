@@ -1,141 +1,81 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView
-from django.contrib.auth.password_validation import validate_password
-from django.core.exceptions import ValidationError
-from .models import User, SavedEntreprise, Alert
-from .serializers import (
-    UserSerializer,
-    UserRegistrationSerializer,
-    SavedEntrepriseSerializer,
-    AlertSerializer
-)
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate
+from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
+from .models import User
+from .serializers import UserSerializer, UserRegistrationSerializer
 
 
+@method_decorator(ratelimit(key='ip', rate='5/h', method='POST'), name='post')
+class UserLoginView(APIView):
+    """Vue de connexion personnalisée acceptant email au lieu de username"""
+    permission_classes = [permissions.AllowAny]
+    
+    def post(self, request):
+        email = request.data.get('email') or request.data.get('username')  # Accept both
+        password = request.data.get('password')
+        
+        if not email or not password:
+            return Response(
+                {'detail': 'Email et mot de passe requis'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Find user by email
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {'detail': 'Aucun compte actif n\'a été trouvé avec les identifiants fournis'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Check password
+        if not user.check_password(password):
+            return Response(
+                {'detail': 'Aucun compte actif n\'a été trouvé avec les identifiants fournis'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        if not user.is_active:
+            return Response(
+                {'detail': 'Ce compte a été désactivé'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'username': user.username,
+                'user_type': user.user_type,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+            }
+        }, status=status.HTTP_200_OK)
+
+
+@method_decorator(ratelimit(key='ip', rate='3/h', method='POST'), name='post')
 class UserRegistrationView(generics.CreateAPIView):
-    """
-    Vue pour l'inscription d'un nouvel utilisateur
-    """
+    """Inscription d'un nouvel utilisateur"""
     queryset = User.objects.all()
     permission_classes = [permissions.AllowAny]
     serializer_class = UserRegistrationSerializer
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
-    """
-    Vue pour récupérer et mettre à jour le profil utilisateur
-    """
+    """Profil de l'utilisateur connecté"""
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permissions_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
         return self.request.user
-
-
-class SavedEntrepriseListCreateView(generics.ListCreateAPIView):
-    """
-    Vue pour lister et sauvegarder des entreprises
-    """
-    serializer_class = SavedEntrepriseSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        return SavedEntreprise.objects.filter(user=self.request.user)
-    
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
-class SavedEntrepriseDeleteView(generics.DestroyAPIView):
-    """
-    Vue pour supprimer une entreprise sauvegardée
-    """
-    serializer_class = SavedEntrepriseSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        return SavedEntreprise.objects.filter(user=self.request.user)
-
-
-class AlertListCreateView(generics.ListCreateAPIView):
-    """
-    Vue pour lister et créer des alertes
-    """
-    serializer_class = AlertSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        return Alert.objects.filter(user=self.request.user)
-    
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
-class AlertDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Vue pour récupérer, mettre à jour et supprimer une alerte
-    """
-    serializer_class = AlertSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        return Alert.objects.filter(user=self.request.user)
-
-
-class ChangePasswordView(APIView):
-    """
-    Vue pour changer le mot de passe de l'utilisateur
-    """
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def post(self, request):
-        user = request.user
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
-        
-        if not old_password or not new_password:
-            return Response(
-                {'detail': 'Ancien et nouveau mot de passe requis'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Vérifier l'ancien mot de passe
-        if not user.check_password(old_password):
-            return Response(
-                {'detail': 'Mot de passe actuel incorrect'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Valider le nouveau mot de passe
-        try:
-            validate_password(new_password, user)
-        except ValidationError as e:
-            # Formater les messages d'erreur en français
-            error_messages = []
-            for message in e.messages:
-                # Traduire les messages courants
-                if 'too short' in message.lower():
-                    error_messages.append('Le mot de passe doit contenir au moins 8 caractères')
-                elif 'too common' in message.lower():
-                    error_messages.append('Ce mot de passe est trop courant')
-                elif 'entirely numeric' in message.lower():
-                    error_messages.append('Le mot de passe ne peut pas être entièrement numérique')
-                elif 'similar' in message.lower():
-                    error_messages.append('Le mot de passe est trop similaire à vos informations personnelles')
-                else:
-                    error_messages.append(message)
-            
-            return Response(
-                {'detail': ' | '.join(error_messages)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Changer le mot de passe
-        user.set_password(new_password)
-        user.save()
-        
-        return Response(
-            {'detail': 'Mot de passe changé avec succès'},
-            status=status.HTTP_200_OK
-        )
