@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// API Base URL - Django Backend
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
 
 // Create axios instance
@@ -10,7 +11,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add token
+// Request interceptor - Add JWT token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
@@ -24,7 +25,7 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for token refresh
+// Response interceptor - Handle token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -45,8 +46,10 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${access}`;
         return api(originalRequest);
       } catch (refreshError) {
+        // Token refresh failed - logout user
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_type');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

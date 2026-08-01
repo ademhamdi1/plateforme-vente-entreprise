@@ -4,26 +4,23 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-from django.contrib.auth import get_user_model
+from apps.users.models import User
 
-User = get_user_model()
-
-# Supprimer l'ancien admin s'il existe
-User.objects.filter(username='admin').delete()
-
-# Créer un nouveau superutilisateur
-admin = User.objects.create_superuser(
-    username='admin',
-    email='admin@entreprises.tn',
-    password='admin123',
-    first_name='Admin',
-    last_name='Platform',
-    user_type='admin'
+# Create admin user
+admin, created = User.objects.get_or_create(
+    email='admin@test.com',
+    defaults={
+        'username': 'admin',
+        'first_name': 'Admin',
+        'last_name': 'System',
+        'user_type': 'admin',
+        'phone': '20000000',
+    }
 )
 
-print("Compte admin créé avec succès !")
-print("\nIdentifiants de connexion :")
-print("   URL : http://localhost:8000/admin")
-print("   Username : admin")
-print("   Password : admin123")
-print("\nNote : Copiez exactement le mot de passe : admin123")
+if created:
+    admin.set_password('admin1234')
+    admin.save()
+    print('✅ Admin créé: admin@test.com / admin1234')
+else:
+    print('✅ Admin existant: admin@test.com')

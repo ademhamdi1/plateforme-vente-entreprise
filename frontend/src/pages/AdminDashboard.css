@@ -1,0 +1,405 @@
+/* ===============================================
+   ADMIN DASHBOARD - MOBILE FIRST
+   =============================================== */
+
+.admin-dashboard {
+  min-height: calc(100vh - 70px);
+  padding: 20px 0;
+  background: #f7fafc;
+}
+
+.admin-dashboard .container {
+  max-width: 100%;
+  padding: 0 15px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.admin-dashboard h1 {
+  font-size: 24px;
+  color: #2d3748;
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+.btn-django-admin {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+  white-space: nowrap;
+}
+
+.btn-django-admin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+  background: linear-gradient(135deg, #27ae60, #229954);
+}
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #667eea;
+}
+
+.stat-card.stat-success {
+  border-left-color: #10b981;
+}
+
+.stat-card.stat-warning {
+  border-left-color: #f59e0b;
+}
+
+.stat-card.stat-danger {
+  border-left-color: #ef4444;
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #718096;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+/* ===== SECTION ===== */
+.section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.section h2 {
+  font-size: 18px;
+  color: #2d3748;
+  margin-bottom: 20px;
+}
+
+/* ===== ENTREPRISES LIST ===== */
+.entreprises-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.entreprise-card-admin {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 15px;
+}
+
+.card-content h3 {
+  font-size: 16px;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.description {
+  font-size: 14px;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #718096;
+  margin-bottom: 8px;
+}
+
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 2px solid #e2e8f0;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-warning:hover {
+  background: #d97706;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h3 {
+  font-size: 18px;
+  color: #2d3748;
+  margin-bottom: 15px;
+}
+
+.modal-content p {
+  font-size: 14px;
+  color: #4a5568;
+  margin-bottom: 15px;
+}
+
+.modal-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 15px;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.modal-select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  margin-bottom: 15px;
+  background: white;
+}
+
+.modal-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #718096;
+}
+
+/* ===== LOADING & ERROR ===== */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 18px;
+  color: #4a5568;
+  background: white;
+  border-radius: 12px;
+}
+
+.error {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+/* ===============================================
+   TABLET (768px and up)
+   =============================================== */
+@media (min-width: 768px) {
+  .admin-dashboard .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .admin-dashboard h1 {
+    font-size: 32px;
+  }
+
+  .btn-django-admin {
+    font-size: 15px;
+    padding: 14px 28px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .section h2 {
+    font-size: 20px;
+  }
+
+  .card-content h3 {
+    font-size: 18px;
+  }
+
+  .card-actions {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .card-actions .btn {
+    flex: 1;
+  }
+}
+
+/* ===============================================
+   DESKTOP (1024px and up)
+   =============================================== */
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .section {
+    padding: 30px;
+  }
+
+  .entreprise-card-admin {
+    padding: 20px;
+  }
+
+  .modal-content {
+    padding: 30px;
+  }
+}
+
+/* Section Header with Button */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
+.admin-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-admin-link {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-admin-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+@media (min-width: 768px) {
+  .btn-admin-link {
+    font-size: 15px;
+    padding: 12px 20px;
+  }
+}

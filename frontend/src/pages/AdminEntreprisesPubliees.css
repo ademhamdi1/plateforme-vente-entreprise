@@ -1,0 +1,367 @@
+/* Mobile First Design - AdminEntreprisesPubliees.css */
+
+/* Base styles - Mobile (320px+) */
+.admin-entreprises-publiees {
+  padding: 20px 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.admin-entreprises-publiees .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.btn-back {
+  padding: 10px 20px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+}
+
+.btn-back:hover {
+  background: #f8f9fa;
+  transform: translateX(-5px);
+}
+
+.admin-entreprises-publiees h1 {
+  color: white;
+  font-size: 24px;
+  margin: 0;
+}
+
+.btn-django-admin {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+  align-self: flex-start;
+}
+
+.btn-django-admin:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+  background: linear-gradient(135deg, #27ae60, #229954);
+}
+
+.loading,
+.error,
+.empty-state {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.error {
+  background: #fee;
+  color: #c33;
+}
+
+.entreprises-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.entreprise-card-admin {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.card-header-row h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 18px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.badge-featured {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.description {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 10px 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 0;
+  font-size: 13px;
+  color: #666;
+  flex-wrap: wrap;
+}
+
+.info-row span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.featured-dates {
+  background: #fff9e6;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 10px;
+  border-left: 3px solid #ffd700;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #333;
+}
+
+.btn-warning:hover {
+  background: linear-gradient(135deg, #ffed4e, #ffd700);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 20px;
+}
+
+.modal-content p {
+  margin: 0 0 20px 0;
+  color: #555;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.modal-select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.modal-select:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+}
+
+/* Tablet (768px+) */
+@media (min-width: 768px) {
+  .admin-entreprises-publiees {
+    padding: 40px 0;
+  }
+
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .header-left {
+    flex: 1;
+  }
+
+  .btn-django-admin {
+    align-self: center;
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+  .admin-entreprises-publiees h1 {
+    font-size: 32px;
+  }
+
+  .entreprise-card-admin {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .card-header-row h3 {
+    font-size: 20px;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    min-width: 180px;
+  }
+
+  .btn {
+    min-width: auto;
+  }
+
+  .description {
+    font-size: 15px;
+  }
+
+  .info-row {
+    font-size: 14px;
+  }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  .admin-entreprises-publiees h1 {
+    font-size: 36px;
+  }
+
+  .entreprises-list {
+    gap: 25px;
+  }
+
+  .entreprise-card-admin {
+    padding: 25px;
+  }
+
+  .card-header-row h3 {
+    font-size: 22px;
+  }
+
+  .card-actions {
+    min-width: 200px;
+  }
+}

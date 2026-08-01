@@ -1,28 +1,14 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils.text import slugify
 from apps.users.models import User
-from .validators import validate_image_file, validate_document_file
 
 
 class Entreprise(models.Model):
     """
-    Modèle principal pour les entreprises à vendre
+    Modèle Entreprise selon cahier des charges
     """
-    STATUT_CHOICES = (
-        ('brouillon', 'Brouillon'),
-        ('en_attente', 'En attente de validation'),
-        ('publiee', 'Publiée'),
-        ('refusee', 'Refusée'),
-        ('vendue', 'Vendue'),
-    )
-    
-    TYPE_TRANSACTION_CHOICES = (
-        ('vente_totale', 'Vente totale'),
-        ('vente_partielle', 'Vente partielle'),
-        ('recherche_associe', 'Recherche d\'associé'),
-        ('levee_fonds', 'Levée de fonds'),
-    )
-    
+    # Secteurs d'activité (du cahier des charges)
     SECTEUR_CHOICES = (
         ('industrie', 'Industrie'),
         ('agriculture', 'Agriculture'),
@@ -31,14 +17,15 @@ class Entreprise(models.Model):
         ('tourisme', 'Tourisme et hôtellerie'),
         ('transport', 'Transport et logistique'),
         ('sante', 'Santé'),
-        ('informatique', 'Informatique et technologie'),
-        ('education', 'Éducation et formation'),
+        ('informatique', 'Technologies de l\'information'),
+        ('education', 'Éducation'),
         ('btp', 'BTP et construction'),
         ('franchise', 'Franchise'),
-        ('startup', 'Startup'),
-        ('autre', 'Autre'),
+        ('startup', 'Startups'),
+        ('autre', 'Autres activités économiques'),
     )
     
+    # Régions de Tunisie (24 gouvernorats)
     REGION_CHOICES = (
         ('tunis', 'Tunis'),
         ('ariana', 'Ariana'),
@@ -66,25 +53,41 @@ class Entreprise(models.Model):
         ('kebili', 'Kébili'),
     )
     
-    # Informations générales
+    # Statuts
+    STATUT_CHOICES = (
+        ('brouillon', 'Brouillon'),
+        ('en_attente', 'En attente de validation'),
+        ('publiee', 'Publiée'),
+        ('refusee', 'Refusée'),
+        ('vendue', 'Vendue'),
+    )
+    
+    # Types de transaction
+    TYPE_TRANSACTION_CHOICES = (
+        ('vente_totale', 'Vente totale'),
+        ('vente_partielle', 'Vente partielle'),
+        ('recherche_associe', 'Recherche d\'associé'),
+        ('levee_fonds', 'Levée de fonds'),
+    )
+    
+    # === INFORMATIONS GÉNÉRALES ===
     nom = models.CharField(max_length=200, verbose_name='Nom de l\'entreprise')
-    slug = models.SlugField(max_length=250, unique=True)
+    slug = models.SlugField(max_length=250, unique=True, blank=True)
     description = models.TextField(verbose_name='Description détaillée')
     secteur = models.CharField(
         max_length=50,
         choices=SECTEUR_CHOICES,
-        default='autre',
         verbose_name='Secteur d\'activité'
     )
-    region = models.CharField(max_length=50, choices=REGION_CHOICES, verbose_name='Région')
-    ville = models.CharField(max_length=100, verbose_name='Ville')
-    adresse = models.TextField(blank=True, verbose_name='Adresse')
-    historique = models.TextField(
-        blank=True,
-        verbose_name='Historique de l\'entreprise'
+    region = models.CharField(
+        max_length=50,
+        choices=REGION_CHOICES,
+        verbose_name='Région'
     )
+    ville = models.CharField(max_length=100, verbose_name='Ville')
+    historique = models.TextField(blank=True, verbose_name='Historique de l\'entreprise')
     
-    # Informations financières
+    # === INFORMATIONS FINANCIÈRES ===
     prix_demande = models.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -123,9 +126,7 @@ class Entreprise(models.Model):
         verbose_name='Endettement (TND)'
     )
     
-    # Suite du modèle dans la partie 2...
-
-    # Informations opérationnelles
+    # === INFORMATIONS OPÉRATIONNELLES ===
     nombre_employes = models.IntegerField(
         null=True,
         blank=True,
@@ -146,14 +147,15 @@ class Entreprise(models.Model):
         verbose_name='Surface du local (m²)'
     )
     equipements_inclus = models.TextField(blank=True, verbose_name='Équipements inclus')
+    
+    # === MÉDIAS ===
     video_url = models.URLField(
         blank=True,
         max_length=500,
-        verbose_name='URL de la vidéo de présentation',
-        help_text='Lien YouTube, Vimeo ou autre'
+        verbose_name='URL vidéo de présentation'
     )
     
-    # Type de transaction
+    # === TYPE DE TRANSACTION ===
     type_transaction = models.CharField(
         max_length=30,
         choices=TYPE_TRANSACTION_CHOICES,
@@ -161,14 +163,14 @@ class Entreprise(models.Model):
         verbose_name='Type de transaction'
     )
     
-    # Points forts et opportunités
+    # === POINTS FORTS & OPPORTUNITÉS ===
     points_forts = models.TextField(blank=True, verbose_name='Points forts')
     opportunites_developpement = models.TextField(
         blank=True,
         verbose_name='Opportunités de développement'
     )
     
-    # Confidentialité
+    # === CONFIDENTIALITÉ ===
     nom_masque = models.BooleanField(
         default=False,
         verbose_name='Masquer le nom de l\'entreprise'
@@ -178,7 +180,7 @@ class Entreprise(models.Model):
         verbose_name='Masquer l\'adresse exacte'
     )
     
-    # Gestion
+    # === GESTION ===
     vendeur = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -191,19 +193,32 @@ class Entreprise(models.Model):
         default='brouillon',
         verbose_name='Statut'
     )
-    raison_refus = models.TextField(
-        blank=True,
-        verbose_name='Raison du refus'
+    raison_refus = models.TextField(blank=True, verbose_name='Raison du refus')
+    est_mise_en_avant = models.BooleanField(
+        default=False,
+        verbose_name='Mise en avant (premium)'
     )
+    
+    # === STATISTIQUES ===
+    nombre_vues = models.PositiveIntegerField(default=0, verbose_name='Nombre de vues')
+    
+    # === MISE EN AVANT (FEATURED) ===
     est_mise_en_avant = models.BooleanField(
         default=False,
         verbose_name='Mise en avant'
     )
+    date_debut_mise_en_avant = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Date début mise en avant'
+    )
+    date_fin_mise_en_avant = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Date fin mise en avant'
+    )
     
-    # Statistiques
-    nombre_vues = models.PositiveIntegerField(default=0, verbose_name='Nombre de vues')
-    
-    # Dates
+    # === DATES ===
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Date de création')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Date de modification')
     published_at = models.DateTimeField(
@@ -219,21 +234,44 @@ class Entreprise(models.Model):
         indexes = [
             models.Index(fields=['-created_at']),
             models.Index(fields=['statut']),
+            models.Index(fields=['secteur']),
+            models.Index(fields=['region']),
         ]
     
     def __str__(self):
         return self.nom
     
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nom)
+            # Ensure unique slug
+            counter = 1
+            while Entreprise.objects.filter(slug=self.slug).exists():
+                self.slug = f"{slugify(self.nom)}-{counter}"
+                counter += 1
+        super().save(*args, **kwargs)
+    
     def increment_views(self):
         """Incrémenter le nombre de vues"""
+        self.nombre_vues += 1
+        self.save(update_fields=['nombre_vues'])
+    
+    @property
+    def est_active_mise_en_avant(self):
+        """Vérifier si la mise en avant est active"""
+        from django.utils import timezone
+        if not self.est_mise_en_avant:
+            return False
+        if not self.date_debut_mise_en_avant or not self.date_fin_mise_en_avant:
+            return False
+        now = timezone.now()
+        return self.date_debut_mise_en_avant <= now <= self.date_fin_mise_en_avant
         self.nombre_vues += 1
         self.save(update_fields=['nombre_vues'])
 
 
 class EntrepriseImage(models.Model):
-    """
-    Modèle pour les images d'entreprises
-    """
+    """Photos de l'entreprise"""
     entreprise = models.ForeignKey(
         Entreprise,
         on_delete=models.CASCADE,
@@ -241,18 +279,17 @@ class EntrepriseImage(models.Model):
         verbose_name='Entreprise'
     )
     image = models.ImageField(
-        upload_to='entreprises/',
-        verbose_name='Image',
-        validators=[validate_image_file]
+        upload_to='entreprises/images/',
+        verbose_name='Image'
     )
     caption = models.CharField(max_length=200, blank=True, verbose_name='Légende')
-    is_logo = models.BooleanField(default=False, verbose_name='Logo')
+    is_logo = models.BooleanField(default=False, verbose_name='Logo principal')
     order = models.IntegerField(default=0, verbose_name='Ordre')
-    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Date d\'ajout')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        verbose_name = 'Image d\'entreprise'
-        verbose_name_plural = 'Images d\'entreprise'
+        verbose_name = 'Image'
+        verbose_name_plural = 'Images'
         ordering = ['order', '-uploaded_at']
     
     def __str__(self):
@@ -260,9 +297,7 @@ class EntrepriseImage(models.Model):
 
 
 class EntrepriseDocument(models.Model):
-    """
-    Modèle pour les documents PDF des entreprises
-    """
+    """Documents PDF de l'entreprise"""
     entreprise = models.ForeignKey(
         Entreprise,
         on_delete=models.CASCADE,
@@ -270,13 +305,12 @@ class EntrepriseDocument(models.Model):
         verbose_name='Entreprise'
     )
     document = models.FileField(
-        upload_to='documents/',
-        verbose_name='Document',
-        validators=[validate_document_file]
+        upload_to='entreprises/documents/',
+        verbose_name='Document PDF'
     )
-    titre = models.CharField(max_length=200, verbose_name='Titre')
+    titre = models.CharField(max_length=200, verbose_name='Titre du document')
     description = models.TextField(blank=True, verbose_name='Description')
-    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Date d\'ajout')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         verbose_name = 'Document'
@@ -285,3 +319,10 @@ class EntrepriseDocument(models.Model):
     
     def __str__(self):
         return f"{self.titre} - {self.entreprise.nom}"
+
+
+# Import other models
+from .favoris_models import Favori
+from .messaging_models import Conversation, Message
+from .statistiques_models import StatistiqueVue, StatistiqueAction, StatistiqueConversion
+from .actualite_models import Actualite

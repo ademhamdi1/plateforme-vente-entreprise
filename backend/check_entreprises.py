@@ -6,14 +6,17 @@ django.setup()
 
 from apps.entreprises.models import Entreprise
 
-entreprises = Entreprise.objects.all()
-print(f"Nombre total d'entreprises: {entreprises.count()}")
-print("\n" + "="*50)
+total = Entreprise.objects.count()
+publiees = Entreprise.objects.filter(statut='publiee').count()
+en_attente = Entreprise.objects.filter(statut='en_attente').count()
+brouillon = Entreprise.objects.filter(statut='brouillon').count()
 
-for e in entreprises:
-    print(f"✅ {e.nom}")
-    print(f"   Statut: {e.statut}")
-    print(f"   Slug: {e.slug}")
-    print(f"   Prix: {e.prix_demande} TND")
-    print(f"   Région: {e.region}")
-    print()
+print(f'📊 Statistiques Entreprises:')
+print(f'Total: {total}')
+print(f'Publiées: {publiees}')
+print(f'En attente: {en_attente}')
+print(f'Brouillon: {brouillon}')
+
+if total == 0:
+    print('\n⚠️  Aucune entreprise dans la base!')
+    print('Créez une entreprise via le frontend (vendeur)')

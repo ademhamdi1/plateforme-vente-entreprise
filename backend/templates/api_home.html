@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Plateforme Vente Entreprises Tunisie</title>
+    <style>
+        /* === MOBILE FIRST DESIGN === */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* MOBILE (320px - 768px) - BASE STYLES */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+            font-size: 16px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            width: 100%;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #10b981;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-top: 12px;
+        }
+        
+        .status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .section {
+            margin-bottom: 24px;
+        }
+        
+        .section h2 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            /* Touch-friendly tap area */
+            min-height: 44px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .endpoint-method {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .method-get {
+            background: #10b981;
+            color: white;
+        }
+        
+        .method-post {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .endpoint-path {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            flex: 1;
+        }
+        
+        .endpoint-desc {
+            color: #666;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #999;
+            font-size: 0.85rem;
+        }
+        
+        .footer p {
+            margin-bottom: 6px;
+        }
+        
+        /* === TABLET (768px+) === */
+        @media (min-width: 768px) {
+            body {
+                padding: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .container {
+                max-width: 700px;
+                padding: 35px;
+                border-radius: 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .section h2 {
+                font-size: 1.25rem;
+                margin-bottom: 16px;
+            }
+            
+            .endpoint {
+                padding: 14px;
+            }
+            
+            .endpoint-path {
+                font-size: 0.9rem;
+            }
+            
+            .endpoint:hover {
+                background: #e8eaf6;
+                transform: translateX(3px);
+                transition: all 0.2s;
+            }
+        }
+        
+        /* === DESKTOP (1024px+) === */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 800px;
+                padding: 45px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header {
+                margin-bottom: 40px;
+            }
+            
+            .section {
+                margin-bottom: 30px;
+            }
+            
+            .section h2 {
+                font-size: 1.35rem;
+            }
+            
+            .endpoint {
+                padding: 16px;
+            }
+            
+            .endpoint-method {
+                font-size: 0.8rem;
+                padding: 5px 12px;
+            }
+            
+            .endpoint-path {
+                font-size: 0.95rem;
+            }
+            
+            .endpoint-desc {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 API Plateforme Vente Entreprises</h1>
+            <p>Tunisie - Première plateforme de vente d'entreprises</p>
+            <div class="status">● Opérationnelle</div>
+        </div>
+        
+        <div class="section">
+            <h2>👥 Authentification</h2>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/users/register/</span>
+                </div>
+                <div class="endpoint-desc">Inscription (vendeur/acheteur)</div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/users/login/</span>
+                </div>
+                <div class="endpoint-desc">Connexion JWT</div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/users/token/refresh/</span>
+                </div>
+                <div class="endpoint-desc">Rafraîchir le token</div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/users/profile/</span>
+                </div>
+                <div class="endpoint-desc">Profil utilisateur</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🏢 Entreprises</h2>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/entreprises/</span>
+                </div>
+                <div class="endpoint-desc">Liste des entreprises publiées</div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-post">POST</span>
+                    <span class="endpoint-path">/api/entreprises/create/</span>
+                    <span class="badge">Vendeur</span>
+                </div>
+                <div class="endpoint-desc">Publier une entreprise</div>
+            </div>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/api/entreprises/mes-entreprises/</span>
+                    <span class="badge">Vendeur</span>
+                </div>
+                <div class="endpoint-desc">Mes annonces</div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>⚙️ Administration</h2>
+            <div class="endpoint">
+                <div class="endpoint-header">
+                    <span class="endpoint-method method-get">GET</span>
+                    <span class="endpoint-path">/admin/</span>
+                </div>
+                <div class="endpoint-desc">Interface d'administration Django</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Version 1.0 - API REST Django + PostgreSQL</p>
+            <p>Documentation complète bientôt disponible 📚</p>
+        </div>
+    </div>
+</body>
+</html>

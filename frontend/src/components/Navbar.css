@@ -1,0 +1,221 @@
+/* === NAVBAR MOBILE FIRST === */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  box-shadow: var(--shadow-md);
+  z-index: 1000;
+  height: 60px;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar-logo {
+  color: white;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.navbar-logo-img {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Hamburger menu */
+.navbar-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 25px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.navbar-toggle span {
+  width: 100%;
+  height: 3px;
+  background: white;
+  border-radius: 10px;
+  transition: all 0.3s;
+  transform-origin: center;
+}
+
+.navbar-toggle.open span:nth-child(1) {
+  transform: rotate(45deg) translateY(8px);
+}
+
+.navbar-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+
+.navbar-toggle.open span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-8px);
+}
+
+/* Mobile menu */
+.navbar-menu {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  background: white;
+  list-style: none;
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+
+.navbar-menu.open {
+  transform: translateX(0);
+}
+
+.navbar-menu li a,
+.navbar-menu li button {
+  display: block;
+  padding: var(--spacing-md);
+  color: var(--gray-800);
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: var(--radius);
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+  border: none;
+  background: none;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.navbar-menu li a:hover,
+.navbar-menu li button:hover {
+  background: var(--gray-100);
+}
+
+.btn-primary-nav {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+.btn-logout {
+  background: none;
+  border: none;
+  color: var(--danger) !important;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  display: block;
+  transition: background 0.3s ease;
+}
+
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* TABLET (768px+) */
+@media (min-width: 768px) {
+  .navbar {
+    height: 70px;
+  }
+  
+  .navbar-logo-img {
+    height: 60px;
+  }
+  
+  .navbar-toggle {
+    display: none;
+  }
+  
+  .navbar-menu {
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+    gap: var(--spacing-sm);
+  }
+  
+  .navbar-menu li a,
+  .navbar-menu li button {
+    color: white;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .navbar-menu li a:hover,
+  .navbar-menu li button:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn-primary-nav {
+    background: white !important;
+    color: var(--primary) !important;
+  }
+  
+  .btn-logout {
+    color: white !important;
+  }
+}
+
+/* DESKTOP (1024px+) */
+@media (min-width: 1024px) {
+  .navbar-logo-img {
+    height: 65px;
+  }
+
+  .navbar-menu {
+    gap: var(--spacing-md);
+  }
+}
+
+
+/* Messages and Notifications Links with Badge */
+.messages-link,
+.notifications-link {
+  position: relative;
+  display: flex !important;
+  align-items: center;
+  gap: 5px;
+}
+
+.unread-badge-nav {
+  background: #e74c3c;
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  display: inline-block;
+}

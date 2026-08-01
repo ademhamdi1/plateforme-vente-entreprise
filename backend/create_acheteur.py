@@ -6,41 +6,28 @@ django.setup()
 
 from apps.users.models import User
 
-# Créer l'utilisateur acheteur
-try:
-    user, created = User.objects.get_or_create(
-        email='adem@gmail.com',
-        defaults={
-            'username': 'adem',
-            'first_name': 'Adem',
-            'last_name': 'Ben Ahmed',
-            'user_type': 'acheteur',
-            'phone': '+216 98 765 432',
-            'city': 'Tunis',
-            'region': 'Tunis',
-            'is_active': True,
-            'is_verified': True
-        }
-    )
-    
-    if created:
-        user.set_password('adem123')
-        user.save()
-        print(f"✅ Utilisateur acheteur créé avec succès!")
-        print(f"   Email: adem@gmail.com")
-        print(f"   Password: adem123")
-        print(f"   Type: Acheteur")
-    else:
-        # Mettre à jour le mot de passe si l'utilisateur existe déjà
-        user.set_password('adem123')
-        user.save()
-        print(f"✅ Utilisateur existant - mot de passe mis à jour")
-        print(f"   Email: adem@gmail.com")
-        print(f"   Password: adem123")
-        print(f"   Type: {user.get_user_type_display()}")
-        
-except Exception as e:
-    print(f"❌ Erreur: {e}")
+# Créer un compte acheteur de test
+acheteur, created = User.objects.get_or_create(
+    username='acheteur',
+    email='acheteur@test.com',
+    defaults={
+        'first_name': 'Jean',
+        'last_name': 'Acheteur',
+        'user_type': 'acheteur',
+        'phone': '+216 20 123 456',
+        'city': 'Tunis',
+        'region': 'tunis',
+        'is_verified': True,
+    }
+)
 
-print("\n🌐 Vous pouvez maintenant vous connecter sur:")
-print("   http://localhost:3000/login")
+if created:
+    acheteur.set_password('test1234')
+    acheteur.save()
+    print("✅ Compte acheteur créé avec succès!")
+else:
+    print("ℹ️  Compte acheteur existe déjà")
+
+print(f"   Email: acheteur@test.com")
+print(f"   Password: test1234")
+print(f"   Type: {acheteur.user_type}")

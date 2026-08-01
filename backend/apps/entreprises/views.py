@@ -1,124 +1,104 @@
-from rest_framework import generics, permissions, filters, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import generics, permissions
 from rest_framework.response import Response
-from django.db.models import Q
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import Entreprise, EntrepriseImage, EntrepriseDocument
-from .serializers import (
-    EntrepriseListSerializer,
-    EntrepriseDetailSerializer,
-    EntrepriseCreateUpdateSerializer,
-    EntrepriseImageSerializer,
-    EntrepriseDocumentSerializer
-)
-from .filters import EntrepriseFilter
-from .permissions import IsVendeurOrReadOnly, IsVendeur
+from django.shortcuts import get_object_or_404
+from .models import Entreprise
+from .serializers import EntrepriseSerializer, EntrepriseCreateSerializer
+
+
+class IsVendeur(permissions.BasePermission):
+    """Permission pour les vendeurs uniquement"""
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.user_type == 'vendeur'
 
 
 class EntrepriseListView(generics.ListAPIView):
-    """
-    Liste des entreprises publiées avec recherche et filtres
-    """
-    serializer_class = EntrepriseListSerializer
+    """Liste des entreprises publiées - Mises en avant en premier"""
+    serializer_class = EntrepriseSerializer
     permission_classes = [permissions.AllowAny]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class = EntrepriseFilter
-    search_fields = ['nom', 'description', 'ville']
-    ordering_fields = ['prix_demande', 'chiffre_affaires', 'nombre_vues', 'created_at']
-    ordering = ['-est_mise_en_avant', '-created_at']
     
     def get_queryset(self):
-        queryset = Entreprise.objects.select_related('vendeur')
-        user = self.request.user
-
-        if user.is_authenticated and user.user_type == 'vendeur':
-            return queryset.filter(Q(statut='publiee') | Q(vendeur=user)).distinct()
-
-        return queryset.filter(statut='publiee')
+        from django.utils import timezone
+        from django.db.models import Case, When, BooleanField, Q
+        
+        now = timezone.now()
+        
+        # Annoter si l'entreprise est actuellement mise en avant (active)
+        return Entreprise.objects.filter(statut='publiee').annotate(
+            is_currently_featured=Case(
+                When(
+                    Q(est_mise_en_avant=True) &
+                    Q(date_debut_mise_en_avant__lte=now) &
+                    Q(date_fin_mise_en_avant__gte=now),
+                    then=True
+                ),
+                default=False,
+                output_field=BooleanField()
+            )
+        ).order_by('-is_currently_featured', '-published_at')
 
 
 class EntrepriseDetailView(generics.RetrieveAPIView):
-    """
-    Détails d'une entreprise
-    """
-    serializer_class = EntrepriseDetailSerializer
+    """Détail d'une entreprise par slug - Incrémente le nombre de vues"""
+    serializer_class = EntrepriseSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'slug'
-
+    
     def get_queryset(self):
-        queryset = Entreprise.objects.select_related('vendeur')
-        user = self.request.user
-
-        if user.is_authenticated and user.user_type == 'vendeur':
-            return queryset.filter(Q(statut='publiee') | Q(vendeur=user)).distinct()
-
-        return queryset.filter(statut='publiee')
+        # Publiques pour tous, ou propres entreprises pour vendeur
+        if self.request.user.is_authenticated and self.request.user.user_type == 'vendeur':
+            return Entreprise.objects.filter(vendeur=self.request.user) | Entreprise.objects.filter(statut='publiee')
+        return Entreprise.objects.filter(statut='publiee')
     
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.increment_views()
+        # Incrémenter le nombre de vues (sauf si c'est le vendeur qui regarde)
+        if not (request.user.is_authenticated and instance.vendeur == request.user):
+            instance.increment_views()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
 
 class EntrepriseCreateView(generics.CreateAPIView):
-    """
-    Créer une nouvelle entreprise
-    """
+    """Créer une entreprise (vendeur uniquement)"""
     queryset = Entreprise.objects.all()
-    serializer_class = EntrepriseCreateUpdateSerializer
+    serializer_class = EntrepriseCreateSerializer
     permission_classes = [IsVendeur]
 
 
 class EntrepriseUpdateView(generics.UpdateAPIView):
-    """
-    Modifier une entreprise
-    """
-    queryset = Entreprise.objects.all()
-    serializer_class = EntrepriseCreateUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated, IsVendeurOrReadOnly]
+    """Modifier une entreprise (vendeur uniquement - ses propres entreprises)"""
+    serializer_class = EntrepriseCreateSerializer
+    permission_classes = [IsVendeur]
     lookup_field = 'slug'
     
     def get_queryset(self):
-        return Entreprise.objects.filter(vendeur=self.request.user)
-
-
-class EntrepriseDeleteView(generics.DestroyAPIView):
-    """
-    Supprimer une entreprise
-    """
-    queryset = Entreprise.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsVendeurOrReadOnly]
-    lookup_field = 'slug'
-    
-    def get_queryset(self):
+        # Vendeur ne peut modifier que ses propres entreprises
         return Entreprise.objects.filter(vendeur=self.request.user)
 
 
 class MesEntreprisesView(generics.ListAPIView):
-    """
-    Liste des entreprises du vendeur connecté
-    """
-    serializer_class = EntrepriseListSerializer
-    permission_classes = [permissions.IsAuthenticated, IsVendeur]
+    """Liste des entreprises du vendeur connecté"""
+    serializer_class = EntrepriseSerializer
+    permission_classes = [IsVendeur]
     
     def get_queryset(self):
         return Entreprise.objects.filter(vendeur=self.request.user)
 
 
-class EntrepriseImageUploadView(generics.CreateAPIView):
-    """
-    Uploader une image pour une entreprise
-    """
-    queryset = EntrepriseImage.objects.all()
-    serializer_class = EntrepriseImageSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
-
-class EntrepriseDocumentUploadView(generics.CreateAPIView):
-    """
-    Uploader un document pour une entreprise
-    """
-    queryset = EntrepriseDocument.objects.all()
-    serializer_class = EntrepriseDocumentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class EntreprisesMisesEnAvantView(generics.ListAPIView):
+    """Liste des entreprises mises en avant actives - depuis PostgreSQL"""
+    serializer_class = EntrepriseSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def get_queryset(self):
+        from django.utils import timezone
+        now = timezone.now()
+        
+        # Entreprises publiées + mise en avant active (entre date début et fin)
+        return Entreprise.objects.filter(
+            statut='publiee',
+            est_mise_en_avant=True,
+            date_debut_mise_en_avant__lte=now,
+            date_fin_mise_en_avant__gte=now
+        ).order_by('-date_debut_mise_en_avant')[:6]  # Max 6 entreprises vedettes
