@@ -6,6 +6,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import render
+from django.http import JsonResponse
 
 
 def api_root(request):
@@ -13,8 +14,14 @@ def api_root(request):
     return render(request, 'api_home.html')
 
 
+def api_health(request):
+    """Health check endpoint"""
+    return JsonResponse({'status': 'ok', 'service': 'plateforme-vente-entreprise'})
+
+
 urlpatterns = [
     path('', api_root, name='api-root'),
+    path('api/', api_health, name='api-health'),
     path('admin/', admin.site.urls),
     path('api/users/', include('apps.users.urls')),
     path('api/entreprises/', include('apps.entreprises.urls')),
