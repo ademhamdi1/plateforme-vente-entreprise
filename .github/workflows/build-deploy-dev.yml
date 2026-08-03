@@ -89,4 +89,4 @@ jobs:
           script_stop: true
           script: |
             cd /home/salon/plateforme-vente-entreprise
-            ./scripts/deploy.sh ${{ github.ref_name }}
+            bash scripts/deploy.sh ${{ github.ref_name }}
