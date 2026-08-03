@@ -15,6 +15,8 @@ function ConversationDetail() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [currentUsername, setCurrentUsername] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     // Vérifier l'authentification
@@ -66,22 +68,36 @@ function ConversationDetail() {
   const handleSendMessage = async (e) => {
     e.preventDefault();
 
-    if (!newMessage.trim() || sending) return;
+    if ((!newMessage.trim() && !selectedFile) || sending) return;
+
+    // Validate file size (max 10MB)
+    if (selectedFile && selectedFile.size > 10 * 1024 * 1024) {
+      setError('Le fichier ne doit pas depasser 10 Mo');
+      return;
+    }
 
     try {
       setSending(true);
       // Envoyer le message - sauvegardé dans PostgreSQL
-      const sentMessage = await messagingService.sendMessage(id, newMessage.trim());
+      const sentMessage = await messagingService.sendMessage(id, newMessage.trim(), selectedFile);
 
       // Ajouter le message à la liste
       setMessages([...messages, sentMessage]);
       setNewMessage('');
+      setSelectedFile(null);
       setError('');
     } catch (err) {
       console.error('Erreur envoi message:', err);
       setError('Impossible d\'envoyer le message');
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
     }
   };
 
@@ -223,7 +239,27 @@ function ConversationDetail() {
                           {message.sender_username}
                         </div>
                       )}
-                      <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                      {message.content && (
+                        <div className="whitespace-pre-wrap break-words">{message.content}</div>
+                      )}
+                      {message.attachment_url && (
+                        <a
+                          href={message.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                          className={`flex items-center gap-2 mt-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            isOwn
+                              ? 'bg-primary-600 hover:bg-primary-700 text-white'
+                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                          }`}
+                        >
+                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                          </svg>
+                          <span className="truncate">{message.attachment_name || 'Piece jointe'}</span>
+                        </a>
+                      )}
                       <div className={`text-xs mt-1 text-right ${isOwn ? 'text-primary-100' : 'text-gray-400'}`}>
                         {formatMessageTime(message.created_at)}
                       </div>
@@ -241,10 +277,44 @@ function ConversationDetail() {
       {/* Input */}
       <div className="bg-white border-t border-gray-200 sticky bottom-0 z-20">
         <div className="max-w-4xl mx-auto px-4 py-3">
+          {selectedFile && (
+            <div className="mb-2 flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-lg text-sm">
+              <svg className="w-4 h-4 text-primary-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+              <span className="truncate flex-1 text-gray-700">{selectedFile.name}</span>
+              <span className="text-xs text-gray-400">{(selectedFile.size / 1024 / 1024).toFixed(2)} Mo</span>
+              <button
+                type="button"
+                onClick={() => setSelectedFile(null)}
+                className="text-danger-500 hover:text-danger-600 p-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
           <form onSubmit={handleSendMessage} className="flex items-end gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 active:scale-90 transition-all"
+              aria-label="Joindre un fichier"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+            </button>
             <textarea
               className="flex-1 px-4 py-3 border border-gray-300 rounded-2xl text-base resize-none outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all"
-              placeholder="Écrivez votre message..."
+              placeholder="Ecrivez votre message..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={(e) => {
@@ -259,7 +329,7 @@ function ConversationDetail() {
             <button
               type="submit"
               className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full bg-primary-500 text-white hover:bg-primary-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              disabled={!newMessage.trim() || sending}
+              disabled={(!newMessage.trim() && !selectedFile) || sending}
               aria-label="Envoyer"
             >
               {sending ? (

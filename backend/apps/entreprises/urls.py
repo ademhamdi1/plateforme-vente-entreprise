@@ -1,11 +1,12 @@
 from django.urls import path
 from .views import (
-    EntrepriseListView, 
+    EntrepriseListView,
     EntrepriseDetailView,
     EntrepriseCreateView,
     EntrepriseUpdateView,
     MesEntreprisesView,
-    EntreprisesMisesEnAvantView
+    EntreprisesMisesEnAvantView,
+    SecteursCountView,
 )
 from .admin_views import (
     AdminEntreprisesEnAttenteView,
@@ -49,12 +50,21 @@ from .recommandations_views import (
     RecommandationsAcheteurView,
     EntreprisesSimilairesView,
 )
+from .faq_views import FAQPublicView, FAQAdminView, FAQAdminDetailView
 
 urlpatterns = [
+    # FAQ routes - depuis PostgreSQL
+    path('faq/', FAQPublicView.as_view(), name='faq-public'),
+    path('admin/faq/', FAQAdminView.as_view(), name='faq-admin-list'),
+    path('admin/faq/<int:pk>/', FAQAdminDetailView.as_view(), name='faq-admin-detail'),
+
+    # Secteurs count - depuis PostgreSQL
+    path('secteurs/', SecteursCountView.as_view(), name='secteurs-count'),
+
     # Actualités routes - Données depuis PostgreSQL
-    path('actualites/', ActualiteViewSet.as_view({'get': 'list'}), name='actualite-list'),
+    path('actualites/', ActualiteViewSet.as_view({'get': 'list', 'post': 'create'}), name='actualite-list'),
     path('actualites/recentes/', ActualiteViewSet.as_view({'get': 'recentes'}), name='actualites-recentes'),
-    path('actualites/<slug:slug>/', ActualiteViewSet.as_view({'get': 'retrieve'}), name='actualite-detail'),
+    path('actualites/<slug:slug>/', ActualiteViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='actualite-detail'),
     
     # Recommandations routes - Données depuis PostgreSQL
     path('recommandations/', RecommandationsAcheteurView.as_view(), name='recommandations-acheteur'),

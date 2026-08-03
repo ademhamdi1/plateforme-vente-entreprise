@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import Entreprise
 from .serializers import EntrepriseSerializer, EntrepriseCreateSerializer
@@ -109,11 +110,11 @@ class EntreprisesMisesEnAvantView(generics.ListAPIView):
     """Liste des entreprises mises en avant actives - depuis PostgreSQL"""
     serializer_class = EntrepriseSerializer
     permission_classes = [permissions.AllowAny]
-    
+
     def get_queryset(self):
         from django.utils import timezone
         now = timezone.now()
-        
+
         # Entreprises publiées + mise en avant active (entre date début et fin)
         return Entreprise.objects.filter(
             statut='publiee',
@@ -121,3 +122,27 @@ class EntreprisesMisesEnAvantView(generics.ListAPIView):
             date_debut_mise_en_avant__lte=now,
             date_fin_mise_en_avant__gte=now
         ).order_by('-date_debut_mise_en_avant')[:6]  # Max 6 entreprises vedettes
+
+
+class SecteursCountView(APIView):
+    """Nombre d'entreprises par secteur - depuis PostgreSQL"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from django.db.models import Count
+
+        secteurs_labels = dict(Entreprise.SECTEUR_CHOICES)
+        counts = Entreprise.objects.filter(
+            statut='publiee'
+        ).values('secteur').annotate(
+            count=Count('id')
+        ).order_by('secteur')
+
+        result = []
+        for item in counts:
+            result.append({
+                'secteur': item['secteur'],
+                'label': secteurs_labels.get(item['secteur'], item['secteur']),
+                'count': item['count']
+            })
+        return Response(result)

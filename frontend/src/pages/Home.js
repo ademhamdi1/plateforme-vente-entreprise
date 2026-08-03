@@ -15,6 +15,7 @@ function Home() {
     totalAcheteurs: 0,
     regions: 24,
   });
+  const [secteurCounts, setSecteurCounts] = useState([]);
   const [searchFilters, setSearchFilters] = useState({
     secteur: '',
     region: '',
@@ -48,6 +49,14 @@ function Home() {
       } catch (err) {
         console.error('Error loading featured:', err);
         setFeaturedEntreprises([]);
+      }
+
+      try {
+        const secteurs = await entrepriseService.getSecteurs();
+        setSecteurCounts(secteurs || []);
+      } catch (err) {
+        console.error('Error loading secteurs:', err);
+        setSecteurCounts([]);
       }
 
       try {
@@ -217,6 +226,36 @@ function Home() {
           </div>
         </div>
       </section>
+
+      {/* === Categories === */}
+      {secteurCounts.length > 0 && (
+        <section className="py-8 md:py-12">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex items-center gap-2 mb-6">
+              <svg className="w-6 h-6 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900">Explorer par secteur</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+              {secteurCounts.map((s) => (
+                <button
+                  key={s.secteur}
+                  onClick={() => navigate(`/entreprises?secteur=${s.secteur}`)}
+                  className="bg-white rounded-xl shadow-card border border-gray-100 p-4 hover:shadow-floating hover:border-primary-200 hover:-translate-y-0.5 transition-all duration-200 text-center group"
+                >
+                  <div className="text-lg md:text-xl font-extrabold text-primary-600 group-hover:text-primary-700">
+                    {s.count}
+                  </div>
+                  <div className="text-xs md:text-sm text-gray-600 font-medium mt-1">
+                    {s.label}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* === Featured === */}
       {featuredEntreprises.length > 0 && (

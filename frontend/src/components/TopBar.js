@@ -12,6 +12,7 @@ function TopBar({ onOpenDrawer, unreadCount = 0, notificationCount = 0 }) {
   const navigate = useNavigate();
   const isAuthenticated = localStorage.getItem('access_token');
   const userType = localStorage.getItem('user_type');
+  const isVerified = localStorage.getItem('is_verified') === 'true';
 
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -36,6 +37,7 @@ function TopBar({ onOpenDrawer, unreadCount = 0, notificationCount = 0 }) {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_type');
+    localStorage.removeItem('is_verified');
     setProfileOpen(false);
     navigate('/');
     window.location.reload();
@@ -197,6 +199,41 @@ function TopBar({ onOpenDrawer, unreadCount = 0, notificationCount = 0 }) {
                       </>
                     )}
 
+                    {userType === 'admin' && (
+                      <>
+                        <div className="my-1 border-t border-gray-100" />
+                        <p className="px-4 py-1 text-[10px] font-bold uppercase tracking-wide text-gray-400">Administration</p>
+                        <Link to="/admin/users" onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                          </svg>
+                          Utilisateurs
+                        </Link>
+                        <Link to="/admin/finances" onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                          </svg>
+                          Finances
+                        </Link>
+                        <Link to="/admin/faq" onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Gestion FAQ
+                        </Link>
+                        <Link to="/admin/actualites" onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3H12M6 3.75h12a2.25 2.25 0 012.25 2.25v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75z" />
+                          </svg>
+                          Actualités
+                        </Link>
+                      </>
+                    )}
+
                     <div className="my-1 border-t border-gray-100" />
 
                     <Link to="/about" onClick={() => setProfileOpen(false)}
@@ -256,6 +293,30 @@ function TopBar({ onOpenDrawer, unreadCount = 0, notificationCount = 0 }) {
           )}
         </div>
       </div>
+
+      {/* Email verification banner */}
+      {isAuthenticated && !isVerified && (
+        <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-warning-500 text-white text-xs font-medium">
+          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 10-2.636 6.364M16.5 12V8.25" />
+          </svg>
+          <span>Email non verifie</span>
+          <button
+            onClick={async () => {
+              try {
+                const api = (await import('../services/api')).default;
+                await api.post('/users/send-verification-email/');
+                alert('Email de verification renvoye !');
+              } catch (err) {
+                alert('Erreur lors de l\'envoi. Reessayez plus tard.');
+              }
+            }}
+            className="underline font-bold hover:text-warning-100 transition-colors"
+          >
+            Renvoyer l'email
+          </button>
+        </div>
+      )}
     </header>
   );
 }

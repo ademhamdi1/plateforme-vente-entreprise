@@ -4,6 +4,7 @@ from .favoris_models import Favori
 from .messaging_models import Conversation, Message
 from .statistiques_models import StatistiqueVue, StatistiqueAction, StatistiqueConversion
 from .actualite_models import Actualite
+from .faq_models import FAQ
 
 
 class EntrepriseImageInline(admin.TabularInline):
@@ -163,3 +164,14 @@ class ActualiteAdmin(admin.ModelAdmin):
         if not obj.auteur:
             obj.auteur = request.user
         super().save_model(request, obj, form, change)
+
+
+# =====================================
+# FAQ
+# =====================================
+@admin.register(FAQ)
+class FAQAdmin(admin.ModelAdmin):
+    list_display = ['question', 'categorie', 'ordre', 'est_publie', 'created_at']
+    list_filter = ['categorie', 'est_publie']
+    search_fields = ['question', 'reponse']
+    list_editable = ['ordre', 'est_publie']

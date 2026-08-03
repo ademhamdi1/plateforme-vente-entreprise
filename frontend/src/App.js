@@ -24,6 +24,10 @@ import Notifications from './pages/Notifications';
 import SoumettreAvis from './pages/SoumettreAvis';
 import AdminTemoignages from './pages/AdminTemoignages';
 import AdminEntreprisesPubliees from './pages/AdminEntreprisesPubliees';
+import AdminFAQ from './pages/AdminFAQ';
+import AdminUsers from './pages/AdminUsers';
+import AdminFinances from './pages/AdminFinances';
+import AdminActualites from './pages/AdminActualites';
 import Profil from './pages/Profil';
 import MesAlertes from './pages/MesAlertes';
 import About from './pages/About';
@@ -125,6 +129,10 @@ function App() {
             <Route path="/comparateur" element={<Comparateur />} />
             <Route path="/admin/temoignages" element={<AdminTemoignages />} />
             <Route path="/admin/entreprises-publiees" element={<AdminEntreprisesPubliees />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/finances" element={<AdminFinances />} />
+            <Route path="/admin/faq" element={<AdminFAQ />} />
+            <Route path="/admin/actualites" element={<AdminActualites />} />
             <Route path="/cgu" element={<CGU />} />
             <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
             <Route path="/mentions-legales" element={<MentionsLegales />} />

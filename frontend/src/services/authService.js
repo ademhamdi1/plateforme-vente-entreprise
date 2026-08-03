@@ -10,17 +10,18 @@ export const authService = {
   // Login - Check credentials from PostgreSQL
   async login(email, password) {
     const response = await api.post('/users/login/', { email, password });
-    
+
     if (response.data.access) {
       // Save tokens to localStorage
       localStorage.setItem('access_token', response.data.access);
       localStorage.setItem('refresh_token', response.data.refresh);
-      
+
       // Get user profile from PostgreSQL
       const profile = await this.getProfile();
       localStorage.setItem('user_type', profile.user_type);
+      localStorage.setItem('is_verified', profile.is_verified ? 'true' : 'false');
     }
-    
+
     return response.data;
   },
 
@@ -29,6 +30,7 @@ export const authService = {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('user_type');
+    localStorage.removeItem('is_verified');
   },
 
   // Get current user profile from PostgreSQL
