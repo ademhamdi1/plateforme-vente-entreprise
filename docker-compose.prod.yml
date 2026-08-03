@@ -1,0 +1,29 @@
+# Production override: pull the images that GitHub Actions pushed to ghcr.io
+# instead of building from source on the server.
+#
+# Usage (on the server):
+#   IMAGE_TAG=latest   # or a specific tag like v1.0.0 / dev0.1.0
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.prod.yml \
+#     pull
+#   docker compose \
+#     -f docker-compose.yml \
+#     -f docker-compose.prod.yml \
+#     up -d
+#
+# Image names are derived from the GitHub repository:
+#   ghcr.io/<owner>/<repo>-backend:<tag>
+#   ghcr.io/<owner>/<repo>-frontend:<tag>
+#
+# Note: if the GitHub repo is PRIVATE, the server must authenticate to ghcr.io
+# first:  echo $GITHUB_PAT | docker login ghcr.io -u <owner> --password-stdin
+
+services:
+  backend:
+    image: ghcr.io/${IMAGE_OWNER:-ademhamdi1}/plateforme-vente-entreprise-backend:${IMAGE_TAG:-latest}
+    pull_policy: always
+
+  frontend:
+    image: ghcr.io/${IMAGE_OWNER:-ademhamdi1}/plateforme-vente-entreprise-frontend:${IMAGE_TAG:-latest}
+    pull_policy: always
