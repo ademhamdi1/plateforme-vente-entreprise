@@ -5,7 +5,7 @@ echo "==> Collecting static files"
 python manage.py collectstatic --noinput
 
 echo "==> Running database migrations"
-python manage.py migrate --noinput
+python manage.py migrate --noinput || echo "    WARNING: some migrations failed, continuing..."
 
 # Idempotent superuser creation for the demo
 if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_EMAIL" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
