@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './FAQ.css';
 
 function FAQ() {
   const navigate = useNavigate();
@@ -108,52 +107,71 @@ function FAQ() {
   };
 
   return (
-    <div className="faq-page">
-      <div className="container">
-        <div className="faq-hero">
-          <h1>❓ Foire Aux Questions (FAQ)</h1>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero */}
+      <div className="page-header">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-2">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h1>Foire Aux Questions (FAQ)</h1>
+          </div>
           <p>Trouvez rapidement des réponses à vos questions</p>
         </div>
+      </div>
 
-        <div className="faq-content">
-          {faqData.map((category, catIndex) => (
-            <div key={catIndex} className="faq-category">
-              <h2 className="category-title">{category.category}</h2>
-              <div className="questions-list">
-                {category.questions.map((item, qIndex) => {
-                  const index = `${catIndex}-${qIndex}`;
-                  const isOpen = openIndex === index;
+      <div className="max-w-4xl mx-auto px-4 py-12 space-y-10">
+        {faqData.map((category, catIndex) => (
+          <div key={catIndex}>
+            <h2 className="text-2xl font-bold text-gray-900 mb-5 pb-2 border-b-2 border-primary-200">
+              {category.category}
+            </h2>
+            <div className="space-y-3">
+              {category.questions.map((item, qIndex) => {
+                const index = `${catIndex}-${qIndex}`;
+                const isOpen = openIndex === index;
 
-                  return (
-                    <div
-                      key={qIndex}
-                      className={`faq-item ${isOpen ? 'open' : ''}`}
+                return (
+                  <div
+                    key={qIndex}
+                    className={`bg-white rounded-xl border transition-all duration-200 ${isOpen ? 'border-primary-300 shadow-card' : 'border-gray-200'}`}
+                  >
+                    <button
+                      className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left font-semibold text-gray-900 hover:bg-gray-50 transition-colors"
+                      onClick={() => toggleQuestion(catIndex, qIndex)}
                     >
-                      <button
-                        className="faq-question"
-                        onClick={() => toggleQuestion(catIndex, qIndex)}
-                      >
-                        <span>{item.q}</span>
-                        <span className="faq-icon">{isOpen ? '−' : '+'}</span>
-                      </button>
-                      {isOpen && (
-                        <div className="faq-answer">
-                          <p>{item.a}</p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                      <span>{item.q}</span>
+                      <span className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full ${isOpen ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                        {isOpen ? (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M20 12H4" />
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                          </svg>
+                        )}
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-5 pt-1 text-gray-600 leading-relaxed">
+                        <p>{item.a}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
 
-        <div className="faq-cta">
-          <h3>Vous ne trouvez pas votre réponse ?</h3>
-          <p>Notre équipe est là pour vous aider</p>
+        {/* CTA */}
+        <div className="card text-center bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Vous ne trouvez pas votre réponse ?</h3>
+          <p className="text-gray-700 mb-5">Notre équipe est là pour vous aider</p>
           <button
-            className="btn btn-primary"
+            className="btn-primary"
             onClick={() => navigate('/contact')}
           >
             Contactez-nous

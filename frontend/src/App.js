@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -40,14 +40,62 @@ import RequestPasswordReset from './pages/RequestPasswordReset';
 import ResetPassword from './pages/ResetPassword';
 
 // Components
-import Navbar from './components/Navbar';
+import TopBar from './components/TopBar';
+import BottomTabBar from './components/BottomTabBar';
+import SideDrawer from './components/SideDrawer';
 import Footer from './components/Footer';
 
+// Services
+import { messagingService } from './services/messagingService';
+import { notificationService } from './services/notificationService';
+
 function App() {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  const isAuthenticated = localStorage.getItem('access_token');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadUnreadCount();
+      loadNotificationCount();
+      const interval = setInterval(() => {
+        loadUnreadCount();
+        loadNotificationCount();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
+
+  const loadUnreadCount = async () => {
+    try {
+      const count = await messagingService.getUnreadCount();
+      setUnreadCount(count);
+    } catch (err) {
+      console.error('Erreur chargement messages non lus:', err);
+    }
+  };
+
+  const loadNotificationCount = async () => {
+    try {
+      const count = await notificationService.getUnreadCount();
+      setNotificationCount(count);
+    } catch (err) {
+      console.error('Erreur chargement notifications:', err);
+    }
+  };
+
   return (
     <Router>
       <div className="App">
-        <Navbar />
+        <TopBar
+          onOpenDrawer={() => setDrawerOpen(true)}
+          unreadCount={unreadCount}
+          notificationCount={notificationCount}
+        />
+        <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
@@ -85,7 +133,10 @@ function App() {
             <Route path="/reset-password/:uidb64/:token" element={<ResetPassword />} />
           </Routes>
         </main>
+
         <Footer />
+        <BottomTabBar />
+
         <ToastContainer
           position="top-right"
           autoClose={3000}
