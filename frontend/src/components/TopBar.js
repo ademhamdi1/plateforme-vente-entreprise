@@ -15,6 +15,7 @@ function TopBar({ onOpenDrawer, unreadCount = 0, notificationCount = 0 }) {
   const isVerified = localStorage.getItem('is_verified') === 'true';
 
   const [profileOpen, setProfileOpen] = useState(false);
+  const [bannerClosed, setBannerClosed] = useState(false);
   const profileRef = useRef(null);
 
   // Close profile dropdown on outside click
@@ -295,7 +296,7 @@ function TopBar({ onOpenDrawer, unreadCount = 0, notificationCount = 0 }) {
       </div>
 
       {/* Email verification banner */}
-      {isAuthenticated && !isVerified && (
+      {isAuthenticated && !isVerified && !bannerClosed && (
         <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-warning-500 text-white text-xs font-medium">
           <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 10-2.636 6.364M16.5 12V8.25" />
@@ -314,6 +315,15 @@ function TopBar({ onOpenDrawer, unreadCount = 0, notificationCount = 0 }) {
             className="underline font-bold hover:text-warning-100 transition-colors"
           >
             Renvoyer l'email
+          </button>
+          <button
+            onClick={() => setBannerClosed(true)}
+            className="ml-1 flex items-center justify-center w-5 h-5 rounded hover:bg-warning-600 transition-colors"
+            aria-label="Fermer"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
       )}
