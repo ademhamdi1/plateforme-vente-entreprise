@@ -1,8 +1,10 @@
 from rest_framework import generics, permissions
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .models import Entreprise
 from .serializers import EntrepriseSerializer, EntrepriseCreateSerializer
+from .filters import EntrepriseFilter
 
 
 class IsVendeur(permissions.BasePermission):
@@ -12,9 +14,26 @@ class IsVendeur(permissions.BasePermission):
 
 
 class EntrepriseListView(generics.ListAPIView):
-    """Liste des entreprises publiées - Mises en avant en premier"""
+    """Liste des entreprises publiées - Mises en avant en premier
+
+    Filtres supportés (via EntrepriseFilter + DRF SearchFilter):
+      ?secteur=industrie          Filtre exact secteur
+      ?region=tunis               Filtre exact région
+      ?type_transaction=vente_totale
+      ?prix_min=100000            Prix minimum
+      ?prix_max=500000            Prix maximum
+      ?ca_min=...&ca_max=...      Chiffre d'affaires
+      ?employes_min=..&employes_max=..
+      ?annee_min=2000&annee_max=2020
+      ?search=mot                 Recherche texte (nom, description, ville)
+      ?ordering=-prix_demande     Tri
+    """
     serializer_class = EntrepriseSerializer
     permission_classes = [permissions.AllowAny]
+    filterset_class = EntrepriseFilter
+    search_fields = ['nom', 'description', 'points_forts', 'ville']
+    ordering_fields = ['prix_demande', 'created_at', 'nombre_vues', 'annee_creation']
+    pagination_class = None  # Marketplace has limited listings; return all
     
     def get_queryset(self):
         from django.utils import timezone

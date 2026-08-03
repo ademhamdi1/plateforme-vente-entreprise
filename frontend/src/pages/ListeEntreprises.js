@@ -1,35 +1,59 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import entrepriseService from '../services/entrepriseService';
 import { favorisService } from '../services/favorisService';
 import { authService } from '../services/authService';
 
 function ListeEntreprises() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [entreprises, setEntreprises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [favorisStatus, setFavorisStatus] = useState({});
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
-    secteur: '', region: '', prix_min: '', prix_max: '', search: '',
-  });
+  const [resultCount, setResultCount] = useState(0);
 
   const isAuthenticated = authService.isAuthenticated();
   const userType = authService.getUserType();
 
+  // Initial filters from URL params (e.g. homepage search redirect)
+  const initialFilters = {
+    search: searchParams.get('search') || '',
+    secteur: searchParams.get('secteur') || '',
+    region: searchParams.get('region') || '',
+    prix_min: searchParams.get('prix_min') || '',
+    prix_max: searchParams.get('prix_max') || '',
+    ca_min: '',
+    ca_max: '',
+    employes_min: '',
+    employes_max: '',
+    annee_min: '',
+    annee_max: '',
+    type_transaction: '',
+  };
+  const [filters, setFilters] = useState(initialFilters);
+
   useEffect(() => {
-    fetchEntreprises();
+    fetchEntreprises(initialFilters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchEntreprises = async () => {
+  const fetchEntreprises = async (currentFilters = filters) => {
     try {
       setLoading(true);
       setError('');
-      const data = await entrepriseService.getAll();
-      setEntreprises(Array.isArray(data) ? data : []);
+      // Build params object — only include non-empty values
+      const params = {};
+      Object.keys(currentFilters).forEach(key => {
+        if (currentFilters[key]) params[key] = currentFilters[key];
+      });
+      const data = await entrepriseService.getAll(params);
+      const list = Array.isArray(data) ? data : (data.results || []);
+      setEntreprises(list);
+      setResultCount(list.length);
       if (isAuthenticated && userType === 'acheteur') {
-        loadFavorisStatus(data);
+        loadFavorisStatus(list);
       }
     } catch (err) {
       console.error('Error fetching entreprises:', err);
@@ -43,8 +67,8 @@ function ListeEntreprises() {
   const loadFavorisStatus = async (entreprisesList) => {
     try {
       const favoris = await favorisService.getFavoris();
-      const status = {};
       const favorisSlugs = favoris.map(f => f.entreprise?.slug).filter(Boolean);
+      const status = {};
       entreprisesList.forEach(ent => {
         status[ent.slug] = favorisSlugs.includes(ent.slug);
       });
@@ -75,19 +99,27 @@ function ListeEntreprises() {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
-  const resetFilters = () => {
-    setFilters({ secteur: '', region: '', prix_min: '', prix_max: '', search: '' });
+  const handleSearch = () => {
+    fetchEntreprises();
   };
 
-  const filteredEntreprises = entreprises.filter((ent) => {
-    if (filters.search && !ent.nom?.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !ent.description?.toLowerCase().includes(filters.search.toLowerCase())) return false;
-    if (filters.secteur && ent.secteur !== filters.secteur) return false;
-    if (filters.region && ent.region !== filters.region) return false;
-    if (filters.prix_min && parseFloat(ent.prix_demande) < parseFloat(filters.prix_min)) return false;
-    if (filters.prix_max && parseFloat(ent.prix_demande) > parseFloat(filters.prix_max)) return false;
-    return true;
-  });
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchEntreprises();
+  };
+
+  const resetFilters = () => {
+    const cleared = {
+      search: '', secteur: '', region: '', prix_min: '', prix_max: '',
+      ca_min: '', ca_max: '', employes_min: '', employes_max: '',
+      annee_min: '', annee_max: '', type_transaction: '',
+    };
+    setFilters(cleared);
+    fetchEntreprises(cleared);
+  };
+
+  // Count active filters for badge
+  const activeFilterCount = Object.values(filters).filter(v => v !== '').length;
 
   const secteurs = [
     { value: 'industrie', label: 'Industrie' }, { value: 'agriculture', label: 'Agriculture' },
@@ -104,6 +136,13 @@ function ListeEntreprises() {
     'bizerte', 'beja', 'jendouba', 'le_kef', 'siliana', 'sousse',
     'monastir', 'mahdia', 'sfax', 'kairouan', 'kasserine', 'sidi_bouzid',
     'gabes', 'medenine', 'tataouine', 'gafsa', 'tozeur', 'kebili',
+  ];
+
+  const typeTransactions = [
+    { value: 'vente_totale', label: 'Vente totale' },
+    { value: 'vente_partielle', label: 'Vente partielle' },
+    { value: 'recherche_associe', label: "Recherche d'associé" },
+    { value: 'levee_fonds', label: 'Levée de fonds' },
   ];
 
   const formatPrice = (price) => {
@@ -139,7 +178,7 @@ function ListeEntreprises() {
       <div className="page-header">
         <div className="max-w-6xl mx-auto">
           <h1>Entreprises à vendre</h1>
-          <p>{filteredEntreprises.length} entreprise{filteredEntreprises.length > 1 ? 's' : ''} disponible{filteredEntreprises.length > 1 ? 's' : ''}</p>
+          <p>{resultCount} entreprise{resultCount > 1 ? 's' : ''} disponible{resultCount > 1 ? 's' : ''}</p>
         </div>
       </div>
 
@@ -154,28 +193,42 @@ function ListeEntreprises() {
         )}
 
         {/* Quick search + filter toggle */}
-        <div className="flex gap-2 mb-4">
+        <form onSubmit={handleSearchSubmit} className="flex gap-2 mb-4">
           <input
             type="text"
             name="search"
             value={filters.search}
             onChange={handleFilterChange}
-            placeholder="Rechercher..."
+            placeholder="Rechercher par nom, mot-clé..."
             className="input flex-1"
           />
+          <button type="submit" className="btn-primary px-5">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
           <button
+            type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className="inline-flex items-center justify-center px-4 rounded-xl border-2 border-primary-500 text-primary-600 font-semibold hover:bg-primary-50 active:scale-95 transition-all md:hidden"
+            className={`inline-flex items-center justify-center px-4 rounded-xl border-2 font-semibold active:scale-95 transition-all md:hidden ${
+              showFilters || activeFilterCount > 0
+                ? 'border-primary-500 bg-primary-50 text-primary-600'
+                : 'border-gray-200 text-gray-600'
+            }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
+            {activeFilterCount > 0 && (
+              <span className="ml-1 flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-primary-500 rounded-full">{activeFilterCount}</span>
+            )}
           </button>
-        </div>
+        </form>
 
-        {/* Filters */}
+        {/* Advanced Filters */}
         <div className={`bg-white rounded-2xl shadow-card border border-gray-100 p-4 md:p-6 mb-6 ${showFilters ? 'block' : 'hidden md:block'}`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {/* Secteur */}
             <div>
               <label className="label">Secteur</label>
               <select name="secteur" value={filters.secteur} onChange={handleFilterChange} className="input">
@@ -183,6 +236,7 @@ function ListeEntreprises() {
                 {secteurs.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
+            {/* Region */}
             <div>
               <label className="label">Région</label>
               <select name="region" value={filters.region} onChange={handleFilterChange} className="input">
@@ -190,23 +244,88 @@ function ListeEntreprises() {
                 {regions.map(r => <option key={r} value={r}>{getRegionLabel(r)}</option>)}
               </select>
             </div>
+            {/* Type de transaction */}
+            <div>
+              <label className="label">Type de transaction</label>
+              <select name="type_transaction" value={filters.type_transaction} onChange={handleFilterChange} className="input">
+                <option value="">Tous</option>
+                {typeTransactions.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+            {/* Prix min */}
             <div>
               <label className="label">Prix min (TND)</label>
               <input type="number" name="prix_min" value={filters.prix_min} onChange={handleFilterChange} placeholder="100000" min="0" className="input" />
             </div>
+            {/* Prix max */}
             <div>
               <label className="label">Prix max (TND)</label>
               <input type="number" name="prix_max" value={filters.prix_max} onChange={handleFilterChange} placeholder="500000" min="0" className="input" />
             </div>
+            {/* Dividing spacer */}
+            <div className="hidden lg:block" />
+            {/* CA min */}
+            <div>
+              <label className="label">CA min (TND)</label>
+              <input type="number" name="ca_min" value={filters.ca_min} onChange={handleFilterChange} placeholder="50000" min="0" className="input" />
+            </div>
+            {/* CA max */}
+            <div>
+              <label className="label">CA max (TND)</label>
+              <input type="number" name="ca_max" value={filters.ca_max} onChange={handleFilterChange} placeholder="500000" min="0" className="input" />
+            </div>
+            {/* Employés min */}
+            <div>
+              <label className="label">Employés min</label>
+              <input type="number" name="employes_min" value={filters.employes_min} onChange={handleFilterChange} placeholder="5" min="0" className="input" />
+            </div>
+            {/* Employés max */}
+            <div>
+              <label className="label">Employés max</label>
+              <input type="number" name="employes_max" value={filters.employes_max} onChange={handleFilterChange} placeholder="100" min="0" className="input" />
+            </div>
+            {/* Année min */}
+            <div>
+              <label className="label">Créée après</label>
+              <input type="number" name="annee_min" value={filters.annee_min} onChange={handleFilterChange} placeholder="2000" min="1900" max={new Date().getFullYear()} className="input" />
+            </div>
+            {/* Année max */}
+            <div>
+              <label className="label">Créée avant</label>
+              <input type="number" name="annee_max" value={filters.annee_max} onChange={handleFilterChange} placeholder="2020" min="1900" max={new Date().getFullYear()} className="input" />
+            </div>
           </div>
-          <button onClick={resetFilters} className="mt-3 text-sm text-primary-600 hover:text-primary-700 font-medium">
-            Réinitialiser les filtres
-          </button>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-2 mt-4 pt-3 border-t border-gray-100">
+            <button onClick={resetFilters} className="text-sm text-gray-500 hover:text-gray-700 font-medium">
+              Réinitialiser
+            </button>
+            <button onClick={handleSearch} className="btn-primary">
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Rechercher
+              </span>
+            </button>
+          </div>
         </div>
 
+        {/* Results count */}
+        {activeFilterCount > 0 && (
+          <div className="flex items-center gap-2 mb-3 text-sm text-gray-500">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            {resultCount} résultat{resultCount > 1 ? 's' : ''} · {activeFilterCount} filtre{activeFilterCount > 1 ? 's' : ''} actif{activeFilterCount > 1 ? 's' : ''}
+            <button onClick={resetFilters} className="text-primary-600 hover:text-primary-700 font-medium">effacer</button>
+          </div>
+        )}
+
         {/* Grid */}
-        {filteredEntreprises.length === 0 ? (
-          <div className="empty-state">
+        {entreprises.length === 0 ? (
+          <div className="empty-state min-h-[40vh]">
             <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -215,7 +334,7 @@ function ListeEntreprises() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredEntreprises.map((ent) => (
+            {entreprises.map((ent) => (
               <div
                 key={ent.id}
                 onClick={() => navigate(`/entreprises/${ent.slug}`)}
