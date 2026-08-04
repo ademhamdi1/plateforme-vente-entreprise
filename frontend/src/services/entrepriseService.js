@@ -44,6 +44,12 @@ const entrepriseService = {
     return response.data;
   },
 
+  // Get sector counts from PostgreSQL (public)
+  async getSecteurs() {
+    const response = await api.get('/entreprises/secteurs/');
+    return response.data;
+  },
+
   // Get personalized recommendations from PostgreSQL (acheteur only)
   async getRecommandations(limit = 6) {
     const response = await api.get('/entreprises/recommandations/', {

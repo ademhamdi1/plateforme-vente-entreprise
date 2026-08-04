@@ -32,7 +32,7 @@ class Abonnement(models.Model):
     auto_renouvellement = models.BooleanField(default=False)
     
     # Limites selon le plan
-    max_annonces = models.IntegerField(default=2)  # Gratuit: 2, Premium: 10, Pro: illimité (999)
+    max_annonces = models.IntegerField(default=2)  # Gratuit: 2, Premium/Pro: illimité (999)
     annonces_mises_en_avant = models.BooleanField(default=False)  # Premium et Pro
     statistiques_avancees = models.BooleanField(default=False)  # Premium et Pro
     badge_verifie = models.BooleanField(default=False)  # Pro uniquement
@@ -88,7 +88,7 @@ class Abonnement(models.Model):
         abonnement.statut = 'actif'
         abonnement.date_debut = timezone.now()
         abonnement.date_fin = timezone.now() + timedelta(days=30 * duree_mois)
-        abonnement.max_annonces = 10
+        abonnement.max_annonces = 999  # Illimité (Premium = annonces illimitées)
         abonnement.annonces_mises_en_avant = True
         abonnement.statistiques_avancees = True
         abonnement.badge_verifie = False

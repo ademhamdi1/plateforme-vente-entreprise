@@ -1,8 +1,11 @@
 from rest_framework import generics, permissions
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
 from .models import Entreprise
 from .serializers import EntrepriseSerializer, EntrepriseCreateSerializer
+from .filters import EntrepriseFilter
 
 
 class IsVendeur(permissions.BasePermission):
@@ -12,9 +15,26 @@ class IsVendeur(permissions.BasePermission):
 
 
 class EntrepriseListView(generics.ListAPIView):
-    """Liste des entreprises publiées - Mises en avant en premier"""
+    """Liste des entreprises publiées - Mises en avant en premier
+
+    Filtres supportés (via EntrepriseFilter + DRF SearchFilter):
+      ?secteur=industrie          Filtre exact secteur
+      ?region=tunis               Filtre exact région
+      ?type_transaction=vente_totale
+      ?prix_min=100000            Prix minimum
+      ?prix_max=500000            Prix maximum
+      ?ca_min=...&ca_max=...      Chiffre d'affaires
+      ?employes_min=..&employes_max=..
+      ?annee_min=2000&annee_max=2020
+      ?search=mot                 Recherche texte (nom, description, ville)
+      ?ordering=-prix_demande     Tri
+    """
     serializer_class = EntrepriseSerializer
     permission_classes = [permissions.AllowAny]
+    filterset_class = EntrepriseFilter
+    search_fields = ['nom', 'description', 'points_forts', 'ville']
+    ordering_fields = ['prix_demande', 'created_at', 'nombre_vues', 'annee_creation']
+    pagination_class = None  # Marketplace has limited listings; return all
     
     def get_queryset(self):
         from django.utils import timezone
@@ -90,11 +110,11 @@ class EntreprisesMisesEnAvantView(generics.ListAPIView):
     """Liste des entreprises mises en avant actives - depuis PostgreSQL"""
     serializer_class = EntrepriseSerializer
     permission_classes = [permissions.AllowAny]
-    
+
     def get_queryset(self):
         from django.utils import timezone
         now = timezone.now()
-        
+
         # Entreprises publiées + mise en avant active (entre date début et fin)
         return Entreprise.objects.filter(
             statut='publiee',
@@ -102,3 +122,27 @@ class EntreprisesMisesEnAvantView(generics.ListAPIView):
             date_debut_mise_en_avant__lte=now,
             date_fin_mise_en_avant__gte=now
         ).order_by('-date_debut_mise_en_avant')[:6]  # Max 6 entreprises vedettes
+
+
+class SecteursCountView(APIView):
+    """Nombre d'entreprises par secteur - depuis PostgreSQL"""
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        from django.db.models import Count
+
+        secteurs_labels = dict(Entreprise.SECTEUR_CHOICES)
+        counts = Entreprise.objects.filter(
+            statut='publiee'
+        ).values('secteur').annotate(
+            count=Count('id')
+        ).order_by('secteur')
+
+        result = []
+        for item in counts:
+            result.append({
+                'secteur': item['secteur'],
+                'label': secteurs_labels.get(item['secteur'], item['secteur']),
+                'count': item['count']
+            })
+        return Response(result)

@@ -1,4 +1,4 @@
-/* === APP MOBILE FIRST === */
+/* === APP LAYOUT === */
 
 .App {
   min-height: 100vh;
@@ -8,13 +8,17 @@
 
 .main-content {
   flex: 1;
-  padding-top: 60px; /* Height of fixed navbar */
+  /* Top bar: h-14 (56px) mobile / h-16 (64px) desktop */
+  padding-top: 56px;
+  /* Bottom tab bar: h-16 (64px) mobile only */
+  padding-bottom: 64px;
   animation: fadeIn 0.3s ease;
 }
 
 /* TABLET+ */
 @media (min-width: 768px) {
   .main-content {
-    padding-top: 70px;
+    padding-top: 64px;
+    padding-bottom: 0; /* No bottom tab bar on desktop */
   }
 }

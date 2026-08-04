@@ -60,6 +60,7 @@ class UserLoginView(APIView):
                 'user_type': user.user_type,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
+                'is_verified': user.is_verified,
             }
         }, status=status.HTTP_200_OK)
 

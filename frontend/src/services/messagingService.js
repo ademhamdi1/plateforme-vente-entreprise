@@ -23,7 +23,18 @@ export const messagingService = {
   },
 
   // Envoyer un message - sauvegardé dans PostgreSQL
-  async sendMessage(conversationId, content) {
+  async sendMessage(conversationId, content, file = null) {
+    if (file) {
+      const formData = new FormData();
+      formData.append('content', content || '');
+      formData.append('attachment', file);
+      const response = await api.post(
+        `/entreprises/messages/conversations/${conversationId}/send/`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      return response.data;
+    }
     const response = await api.post(
       `/entreprises/messages/conversations/${conversationId}/send/`,
       { content }

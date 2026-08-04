@@ -44,6 +44,17 @@ from .payment_views import (
     GetStripePublicKeyView,
 )
 from .demo_payment_views import DemoPaymentView
+from .admin_user_views import (
+    AdminUserListView,
+    AdminUserDetailView,
+    AdminUserToggleActiveView,
+    AdminUserVerifyView,
+)
+from .admin_finance_views import (
+    AdminFinanceDashboardView,
+    AdminPaymentListView,
+    AdminAbonnementListView,
+)
 
 urlpatterns = [
     # Authentification
@@ -100,4 +111,15 @@ urlpatterns = [
     path('alertes/create/', AlerteCreateView.as_view(), name='alerte-create'),
     path('alertes/<int:pk>/', AlerteDetailView.as_view(), name='alerte-detail'),
     path('alertes/<int:pk>/toggle/', AlerteToggleView.as_view(), name='alerte-toggle'),
+
+    # Admin User Management - depuis/vers PostgreSQL
+    path('admin/users/', AdminUserListView.as_view(), name='admin-users-list'),
+    path('admin/users/<int:pk>/', AdminUserDetailView.as_view(), name='admin-users-detail'),
+    path('admin/users/<int:pk>/toggle-active/', AdminUserToggleActiveView.as_view(), name='admin-users-toggle-active'),
+    path('admin/users/<int:pk>/verify/', AdminUserVerifyView.as_view(), name='admin-users-verify'),
+
+    # Admin Finance Management - depuis PostgreSQL
+    path('admin/finance/dashboard/', AdminFinanceDashboardView.as_view(), name='admin-finance-dashboard'),
+    path('admin/finance/payments/', AdminPaymentListView.as_view(), name='admin-finance-payments'),
+    path('admin/finance/abonnements/', AdminAbonnementListView.as_view(), name='admin-finance-abonnements'),
 ]
