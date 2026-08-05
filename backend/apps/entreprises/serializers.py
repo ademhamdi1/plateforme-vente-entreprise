@@ -30,8 +30,9 @@ class EntrepriseSerializer(serializers.ModelSerializer):
 class EntrepriseCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Entreprise
-        exclude = ['vendeur', 'slug', 'nombre_vues', 'statut', 'raison_refus', 
+        exclude = ['vendeur', 'nombre_vues', 'statut', 'raison_refus', 
                    'est_mise_en_avant', 'created_at', 'updated_at', 'published_at']
+        read_only_fields = ['slug']
     
     def create(self, validated_data):
         validated_data['vendeur'] = self.context['request'].user

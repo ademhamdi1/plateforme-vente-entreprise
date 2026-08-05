@@ -194,10 +194,6 @@ class Entreprise(models.Model):
         verbose_name='Statut'
     )
     raison_refus = models.TextField(blank=True, verbose_name='Raison du refus')
-    est_mise_en_avant = models.BooleanField(
-        default=False,
-        verbose_name='Mise en avant (premium)'
-    )
     
     # === STATISTIQUES ===
     nombre_vues = models.PositiveIntegerField(default=0, verbose_name='Nombre de vues')
