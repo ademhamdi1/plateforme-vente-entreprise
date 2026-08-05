@@ -85,6 +85,7 @@ class Entreprise(models.Model):
         verbose_name='Région'
     )
     ville = models.CharField(max_length=100, verbose_name='Ville')
+    adresse = models.CharField(max_length=300, blank=True, null=True, verbose_name='Adresse')
     historique = models.TextField(blank=True, verbose_name='Historique de l\'entreprise')
     
     # === INFORMATIONS FINANCIÈRES ===

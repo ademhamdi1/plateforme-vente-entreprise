@@ -13,6 +13,7 @@ function PublierEntreprise() {
     secteur: '',
     region: '',
     ville: '',
+    adresse: '',
     historique: '',
 
     // Informations financières
@@ -309,6 +310,18 @@ function PublierEntreprise() {
                   onChange={handleChange}
                   placeholder="Ex: Tunis"
                   required
+                  className="input"
+                />
+              </div>
+
+              <div>
+                <label className="label">Adresse</label>
+                <input
+                  type="text"
+                  name="adresse"
+                  value={formData.adresse}
+                  onChange={handleChange}
+                  placeholder="Ex: Avenue Habib Bourguiba"
                   className="input"
                 />
               </div>
