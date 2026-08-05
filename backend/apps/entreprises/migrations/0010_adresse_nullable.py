@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -8,10 +8,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Make adresse nullable (was NOT NULL from original schema, but model now has null=True)
-        migrations.AlterField(
-            model_name='entreprise',
-            name='adresse',
-            field=models.CharField(blank=True, max_length=300, null=True, verbose_name='Adresse'),
+        # The production DB has a stale `adresse` column (NOT NULL) from the original
+        # migration that was replaced. The current model defines it as nullable, but
+        # Django's migration state doesn't know about the column, so we use raw SQL.
+        migrations.RunSQL(
+            sql=[
+                "ALTER TABLE entreprises_entreprise ALTER COLUMN adresse DROP NOT NULL;",
+            ],
+            reverse_sql=[
+                "ALTER TABLE entreprises_entreprise ALTER COLUMN adresse SET NOT NULL;",
+            ],
         ),
     ]
