@@ -41,6 +41,8 @@ function PublierEntreprise() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
 
   // États pour les médias
   const [selectedImages, setSelectedImages] = useState([]);
@@ -62,43 +64,146 @@ function PublierEntreprise() {
       ...formData,
       [e.target.name]: value,
     });
+    // Clear errors when user starts typing
     setError('');
+    setErrors({});
+    setSuccessMessage('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setErrors({});
+    setSuccessMessage('');
+
+    // Client-side validation
+    const validationErrors = {};
+    
+    if (!formData.nom || formData.nom.trim() === '') {
+      validationErrors.nom = 'Le nom de l\'entreprise est obligatoire';
+    }
+    if (!formData.description || formData.description.trim() === '') {
+      validationErrors.description = 'La description est obligatoire';
+    }
+    if (!formData.secteur) {
+      validationErrors.secteur = 'Le secteur d\'activité est obligatoire';
+    }
+    if (!formData.region) {
+      validationErrors.region = 'La région est obligatoire';
+    }
+    if (!formData.ville || formData.ville.trim() === '') {
+      validationErrors.ville = 'La ville est obligatoire';
+    }
+    if (!formData.prix_demande || formData.prix_demande <= 0) {
+      validationErrors.prix_demande = 'Le prix demandé doit être supérieur à 0';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      
+      // Create detailed error message
+      const errorList = [];
+      if (validationErrors.nom) errorList.push('• Nom de l\'entreprise');
+      if (validationErrors.description) errorList.push('• Description');
+      if (validationErrors.secteur) errorList.push('• Secteur d\'activité');
+      if (validationErrors.region) errorList.push('• Région');
+      if (validationErrors.ville) errorList.push('• Ville');
+      if (validationErrors.prix_demande) errorList.push('• Prix demandé');
+      
+      console.log('🔴 ERREURS DE VALIDATION:', validationErrors);
+      console.log('🔴 NOMBRE D\'ERREURS:', Object.keys(validationErrors).length);
+      
+      setError(`❌ ${Object.keys(validationErrors).length} champ(s) obligatoire(s) manquant(s):\n\n${errorList.join('\n')}`);
+      setLoading(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     try {
       // Create entreprise - Save to PostgreSQL
       const result = await entrepriseService.create(formData);
+      
+      setSuccessMessage('✅ Entreprise créée avec succès! Upload des médias en cours...');
 
       // Si un logo est sélectionné, l'uploader en premier avec is_logo=true
       if (selectedLogo) {
-        await mediaService.uploadImage(result.slug, selectedLogo, '', 0, true);
+        try {
+          await mediaService.uploadImage(result.slug, selectedLogo, '', 0, true);
+          setSuccessMessage('✅ Entreprise créée avec logo! Upload des photos en cours...');
+        } catch (logoErr) {
+          console.error('Logo upload error:', logoErr);
+          setError('⚠️ L\'entreprise a été créée mais le logo n\'a pas pu être uploadé.');
+        }
       }
 
       // Si des images sont sélectionnées, les uploader
       if (selectedImages.length > 0) {
+        let uploadedCount = 0;
         for (let i = 0; i < selectedImages.length; i++) {
-          await mediaService.uploadImage(result.slug, selectedImages[i], '', i, false);
+          try {
+            await mediaService.uploadImage(result.slug, selectedImages[i], '', i, false);
+            uploadedCount++;
+            setSuccessMessage(`✅ ${uploadedCount}/${selectedImages.length} photos uploadées...`);
+          } catch (imgErr) {
+            console.error(`Image ${i} upload error:`, imgErr);
+          }
         }
       }
 
       const logoMsg = selectedLogo ? ' avec logo' : '';
       const imagesMsg = selectedImages.length > 0 ? ` et ${selectedImages.length} photo(s)` : '';
-      alert(`✅ Entreprise publiée${logoMsg}${imagesMsg} !`);
-
-      navigate('/dashboard');
+      
+      setSuccessMessage(`🎉 Entreprise publiée avec succès${logoMsg}${imagesMsg}!`);
+      
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
 
     } catch (err) {
       console.error('Error creating entreprise:', err);
-      setError(
-        err.response?.data?.nom?.[0] ||
-        err.response?.data?.prix_demande?.[0] ||
-        'Erreur lors de la publication. Vérifiez vos informations.'
-      );
+      
+      // Parse backend errors
+      if (err.response?.data) {
+        const backendErrors = {};
+        const errorData = err.response.data;
+        
+        // Map backend field errors
+        Object.keys(errorData).forEach(field => {
+          if (Array.isArray(errorData[field])) {
+            backendErrors[field] = errorData[field][0];
+          } else if (typeof errorData[field] === 'string') {
+            backendErrors[field] = errorData[field];
+          }
+        });
+        
+        setErrors(backendErrors);
+        
+        // Create a comprehensive error message
+        const errorMessages = [];
+        if (errorData.nom) errorMessages.push(`❌ Nom: ${backendErrors.nom}`);
+        if (errorData.prix_demande) errorMessages.push(`❌ Prix: ${backendErrors.prix_demande}`);
+        if (errorData.description) errorMessages.push(`❌ Description: ${backendErrors.description}`);
+        if (errorData.secteur) errorMessages.push(`❌ Secteur: ${backendErrors.secteur}`);
+        if (errorData.region) errorMessages.push(`❌ Région: ${backendErrors.region}`);
+        if (errorData.ville) errorMessages.push(`❌ Ville: ${backendErrors.ville}`);
+        if (errorData.detail) errorMessages.push(`❌ ${errorData.detail}`);
+        if (errorData.error) errorMessages.push(`❌ ${errorData.error}`);
+        
+        if (errorMessages.length > 0) {
+          setError(errorMessages.join('\n'));
+        } else if (errorData.non_field_errors) {
+          setError(`❌ ${errorData.non_field_errors[0]}`);
+        } else {
+          setError('❌ Erreur lors de la publication. Vérifiez vos informations.');
+        }
+      } else if (err.request) {
+        setError('❌ Impossible de contacter le serveur. Vérifiez votre connexion internet.');
+      } else {
+        setError(`❌ Erreur: ${err.message}`);
+      }
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -219,18 +324,29 @@ function PublierEntreprise() {
           <p>Remplissez les informations ci-dessous pour mettre votre entreprise en vente</p>
         </div>
 
+        {successMessage && (
+          <div className="mt-6 rounded-md bg-success-50 border border-success-200 p-4">
+            <div className="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-success-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <p className="text-sm text-success-700 whitespace-pre-line">{successMessage}</p>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="mt-6 rounded-md bg-danger-50 border border-danger-200 p-4">
             <div className="flex items-start gap-3">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-danger-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
-              <p className="text-sm text-danger-700">{error}</p>
+              <p className="text-sm text-danger-700 whitespace-pre-line">{error}</p>
             </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-6" noValidate>
           {/* Informations générales */}
           <div className="card">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -250,8 +366,18 @@ function PublierEntreprise() {
                   onChange={handleChange}
                   placeholder="Ex: Restaurant Le Gourmet"
                   required
-                  className="input"
+                  className={`input ${errors.nom ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 />
+                {errors.nom && (
+                  <div className="mt-2 p-3 rounded-lg bg-danger-50 border-l-4 border-danger-500">
+                    <p className="text-sm font-medium text-danger-700 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      {errors.nom}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -263,8 +389,18 @@ function PublierEntreprise() {
                   placeholder="Décrivez votre entreprise..."
                   rows="5"
                   required
-                  className="input"
+                  className={`input ${errors.description ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 />
+                {errors.description && (
+                  <div className="mt-2 p-3 rounded-lg bg-danger-50 border-l-4 border-danger-500">
+                    <p className="text-sm font-medium text-danger-700 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      {errors.description}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -275,13 +411,23 @@ function PublierEntreprise() {
                     value={formData.secteur}
                     onChange={handleChange}
                     required
-                    className="input"
+                    className={`input ${errors.secteur ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   >
                     <option value="">Sélectionnez...</option>
                     {secteurs.map(s => (
                       <option key={s.value} value={s.value}>{s.label}</option>
                     ))}
                   </select>
+                  {errors.secteur && (
+                    <div className="mt-2 p-3 rounded-lg bg-danger-50 border-l-4 border-danger-500">
+                      <p className="text-sm font-medium text-danger-700 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        {errors.secteur}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -291,13 +437,23 @@ function PublierEntreprise() {
                     value={formData.region}
                     onChange={handleChange}
                     required
-                    className="input"
+                    className={`input ${errors.region ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                   >
                     <option value="">Sélectionnez...</option>
                     {regions.map(r => (
                       <option key={r.toLowerCase()} value={r.toLowerCase()}>{r}</option>
                     ))}
                   </select>
+                  {errors.region && (
+                    <div className="mt-2 p-3 rounded-lg bg-danger-50 border-l-4 border-danger-500">
+                      <p className="text-sm font-medium text-danger-700 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        {errors.region}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -310,8 +466,18 @@ function PublierEntreprise() {
                   onChange={handleChange}
                   placeholder="Ex: Tunis"
                   required
-                  className="input"
+                  className={`input ${errors.ville ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 />
+                {errors.ville && (
+                  <div className="mt-2 p-3 rounded-lg bg-danger-50 border-l-4 border-danger-500">
+                    <p className="text-sm font-medium text-danger-700 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      {errors.ville}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -350,8 +516,18 @@ function PublierEntreprise() {
                   min="0"
                   step="1000"
                   required
-                  className="input"
+                  className={`input ${errors.prix_demande ? 'border-danger-500 focus:ring-danger-500' : ''}`}
                 />
+                {errors.prix_demande && (
+                  <div className="mt-2 p-3 rounded-lg bg-danger-50 border-l-4 border-danger-500">
+                    <p className="text-sm font-medium text-danger-700 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      {errors.prix_demande}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
